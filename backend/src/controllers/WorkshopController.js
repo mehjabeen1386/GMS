@@ -13,7 +13,7 @@ class WorkshopController extends BaseController {
    */
   createWorkshop = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const workshop = await WorkshopService.createWorkshop(req.body, contractorId, ipAddress);
     return this.sendSuccess(res, 201, 'Workshop created successfully', workshop);
   });
@@ -29,9 +29,9 @@ class WorkshopController extends BaseController {
   });
 
   /**
-   * Retrieves all workshops managed by the authenticated contractor
+   * Retrieves all workshops (Alias for getAllWorkshops used in routes)
    */
-  getContractorWorkshops = this.catchAsync(async (req, res) => {
+  getAllWorkshops = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
     const workshops = await WorkshopService.getContractorWorkshops(contractorId);
     return this.sendSuccess(res, 200, 'Workshops retrieved successfully', workshops);
@@ -43,9 +43,21 @@ class WorkshopController extends BaseController {
   updateWorkshop = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const updatedWorkshop = await WorkshopService.updateWorkshop(id, req.body, contractorId, ipAddress);
     return this.sendSuccess(res, 200, 'Workshop updated successfully', updatedWorkshop);
+  });
+
+  /**
+   * Toggles workshop active/inactive status
+   */
+  toggleWorkshopStatus = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    const contractorId = req.user._id;
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const workshop = await WorkshopService.toggleWorkshopStatus(id, isActive, contractorId, ipAddress);
+    return this.sendSuccess(res, 200, `Workshop status updated to ${isActive ? 'active' : 'inactive'}`, workshop);
   });
 
   /**
@@ -54,7 +66,7 @@ class WorkshopController extends BaseController {
   deleteWorkshop = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     await WorkshopService.deleteWorkshop(id, contractorId, ipAddress);
     return this.sendSuccess(res, 200, 'Workshop deleted successfully');
   });
