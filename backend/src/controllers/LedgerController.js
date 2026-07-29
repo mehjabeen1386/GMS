@@ -1,56 +1,50 @@
-// Purpose: General Ledger & Financial Transactions Controller Layer
+// Purpose: Financial Ledger & Double-Entry Accounting Controller Layer
 // Path: backend/src/controllers/LedgerController.js
 
 const BaseController = require('./BaseController');
 const LedgerService = require('../services/LedgerService');
 
 /**
- * Controller handling financial ledger entries, credits/debits, and balance summaries.
+ * Controller handling financial transactions, contractor balances, and audit logging
  */
 class LedgerController extends BaseController {
   /**
-   * Records a new transaction entry in the financial ledger
+   * Logs a manual financial debit or credit transaction in contractor ledger
    */
   createLedgerEntry = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
-    const ledgerEntry = await LedgerService.createLedgerEntry(req.body, contractorId, ipAddress);
-    return this.sendSuccess(res, 201, 'Ledger entry recorded successfully', ledgerEntry);
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const entry = await LedgerService.createLedgerEntry(req.body, contractorId, ipAddress);
+    return this.sendSuccess(res, 201, 'Ledger entry recorded successfully', entry);
   });
 
   /**
-   * Retrieves a ledger transaction entry by ID within contractor scope
-   */
-  getLedgerEntryById = this.catchAsync(async (req, res) => {
-    const { id } = req.params;
-    const contractorId = req.user._id;
-    const entry = await LedgerService.getLedgerEntryById(id, contractorId);
-    return this.sendSuccess(res, 200, 'Ledger entry retrieved successfully', entry);
-  });
-
-  /**
-   * Retrieves paginated financial ledger transactions for a contractor
+   * Retrieves paginated ledger transactions under contractor scope
    */
   getContractorLedger = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
     const { page, limit } = this.getPaginationParams(req);
-    const filters = {
-      type: req.query.type, // 'CREDIT' or 'DEBIT'
-      category: req.query.category,
-      startDate: req.query.startDate,
-      endDate: req.query.endDate
-    };
-    const ledgerData = await LedgerService.getContractorLedger(contractorId, filters, page, limit);
-    return this.sendSuccess(res, 200, 'Financial ledger records retrieved successfully', ledgerData);
+    const ledgerData = await LedgerService.getContractorLedger(contractorId, page, limit);
+    return this.sendSuccess(res, 200, 'Ledger transactions retrieved successfully', ledgerData);
   });
 
   /**
-   * Retrieves current net balance and ledger summary for a contractor
+   * Retrieves current contractor ledger total debits, total credits, and net balance
    */
-  getLedgerSummary = this.catchAsync(async (req, res) => {
+  getContractorBalance = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const summary = await LedgerService.getLedgerSummary(contractorId);
-    return this.sendSuccess(res, 200, 'Financial ledger summary retrieved successfully', summary);
+    const balance = await LedgerService.getContractorBalance(contractorId);
+    return this.sendSuccess(res, 200, 'Contractor balance retrieved successfully', balance);
+  });
+
+  /**
+   * Retrieves details for a specific ledger transaction entry by ID
+   */
+  getLedgerById = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const contractorId = req.user._id;
+    const entry = await LedgerService.getLedgerById(id, contractorId);
+    return this.sendSuccess(res, 200, 'Ledger entry details retrieved successfully', entry);
   });
 }
 

@@ -1,15 +1,15 @@
-// Purpose: In-App System & Real-Time Alerts Controller Layer
+// Purpose: User System Alerts & Real-time Notifications Controller Layer
 // Path: backend/src/controllers/NotificationController.js
 
 const BaseController = require('./BaseController');
 const NotificationService = require('../services/NotificationService');
 
 /**
- * Controller handling user notification feeds, unread counters, and mark-as-read state updates.
+ * Controller handling user alerts, notification retrieval, and read state management
  */
 class NotificationController extends BaseController {
   /**
-   * Retrieves paginated list of notifications for the authenticated user
+   * Retrieves paginated notifications for the authenticated user
    */
   getUserNotifications = this.catchAsync(async (req, res) => {
     const userId = req.user._id;
@@ -19,7 +19,7 @@ class NotificationController extends BaseController {
   });
 
   /**
-   * Retrieves total unread notification count for the authenticated user
+   * Retrieves the total count of unread notifications for the user
    */
   getUnreadCount = this.catchAsync(async (req, res) => {
     const userId = req.user._id;
@@ -28,22 +28,22 @@ class NotificationController extends BaseController {
   });
 
   /**
-   * Marks a specific notification as read
+   * Marks all unread notifications as read for the authenticated user
+   */
+  markAllAsRead = this.catchAsync(async (req, res) => {
+    const userId = req.user._id;
+    await NotificationService.markAllAsRead(userId);
+    return this.sendSuccess(res, 200, 'All notifications marked as read');
+  });
+
+  /**
+   * Marks a specific notification as read by ID
    */
   markAsRead = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const userId = req.user._id;
-    const updatedNotification = await NotificationService.markAsRead(id, userId);
-    return this.sendSuccess(res, 200, 'Notification marked as read', updatedNotification);
-  });
-
-  /**
-   * Marks all notifications as read for the authenticated user
-   */
-  markAllAsRead = this.catchAsync(async (req, res) => {
-    const userId = req.user._id;
-    const result = await NotificationService.markAllAsRead(userId);
-    return this.sendSuccess(res, 200, 'All notifications marked as read', result);
+    const notification = await NotificationService.markAsRead(id, userId);
+    return this.sendSuccess(res, 200, 'Notification marked as read', notification);
   });
 }
 

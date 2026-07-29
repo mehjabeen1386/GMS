@@ -1,53 +1,54 @@
-// Purpose: Fabric & Raw Material Inventory Controller Layer
+// Purpose: Cloth / Raw Material Controller Layer
 // Path: backend/src/controllers/ClothController.js
 
 const BaseController = require('./BaseController');
 const ClothService = require('../services/ClothService');
 
-/**
- * Controller handling fabric intake, roll inventory tracking, and stock deductions.
- */
 class ClothController extends BaseController {
-  /**
-   * Registers a new fabric roll intake entry
-   */
   createCloth = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const cloth = await ClothService.createCloth(req.body, contractorId, ipAddress);
-    return this.sendSuccess(res, 201, 'Fabric roll registered successfully', cloth);
+    return this.sendSuccess(res, 201, 'Cloth created successfully', cloth);
   });
 
-  /**
-   * Retrieves a fabric roll by ID within contractor scope
-   */
+  getAllCloths = this.catchAsync(async (req, res) => {
+    const contractorId = req.user._id;
+    const cloths = await ClothService.getAllCloths(contractorId);
+    return this.sendSuccess(res, 200, 'Cloths retrieved successfully', cloths);
+  });
+
   getClothById = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const contractorId = req.user._id;
     const cloth = await ClothService.getClothById(id, contractorId);
-    return this.sendSuccess(res, 200, 'Fabric roll retrieved successfully', cloth);
+    return this.sendSuccess(res, 200, 'Cloth retrieved successfully', cloth);
   });
 
-  /**
-   * Retrieves all fabric inventory rolls for a contractor with optional company filter
-   */
-  getContractorCloths = this.catchAsync(async (req, res) => {
-    const contractorId = req.user._id;
-    const companyId = req.query.companyId || null;
-    const cloths = await ClothService.getContractorCloths(contractorId, companyId);
-    return this.sendSuccess(res, 200, 'Fabric inventory retrieved successfully', cloths);
-  });
-
-  /**
-   * Deducts meter usage from a fabric roll stock
-   */
-  deductStock = this.catchAsync(async (req, res) => {
+  updateCloth = this.catchAsync(async (req, res) => {
     const { id } = req.params;
-    const { metersUsed } = req.body;
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
-    const updatedCloth = await ClothService.deductStock(id, metersUsed, contractorId, ipAddress);
-    return this.sendSuccess(res, 200, 'Fabric inventory stock updated successfully', updatedCloth);
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const updatedCloth = await ClothService.updateCloth(id, req.body, contractorId, ipAddress);
+    return this.sendSuccess(res, 200, 'Cloth updated successfully', updatedCloth);
+  });
+
+  // Added to handle router.patch('/:id/status', ...)
+  toggleClothStatus = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    const contractorId = req.user._id;
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const cloth = await ClothService.toggleClothStatus(id, isActive, contractorId, ipAddress);
+    return this.sendSuccess(res, 200, `Cloth status updated to ${isActive ? 'active' : 'inactive'}`, cloth);
+  });
+
+  deleteCloth = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const contractorId = req.user._id;
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    await ClothService.deleteCloth(id, contractorId, ipAddress);
+    return this.sendSuccess(res, 200, 'Cloth deleted successfully');
   });
 }
 

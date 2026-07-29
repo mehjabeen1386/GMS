@@ -5,58 +5,57 @@ const BaseController = require('./BaseController');
 const AssignmentService = require('../services/AssignmentService');
 
 /**
- * Controller handling task allocation to workers, completed piece logging, and assignment progress tracking.
+ * Controller handling worker task allocation, piece-rate tracking, and progress updates
  */
 class AssignmentController extends BaseController {
   /**
-   * Assigns a production task or piece-rate quota to a worker
+   * Assigns a piece-rate production task/operation to a worker
    */
   createAssignment = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const assignment = await AssignmentService.createAssignment(req.body, contractorId, ipAddress);
-    return this.sendSuccess(res, 201, 'Task assigned to worker successfully', assignment);
+    return this.sendSuccess(res, 201, 'Task assigned successfully', assignment);
   });
 
   /**
-   * Retrieves an assignment by ID within contractor scope
-   */
-  getAssignmentById = this.catchAsync(async (req, res) => {
-    const { id } = req.params;
-    const contractorId = req.user._id;
-    const assignment = await AssignmentService.getAssignmentById(id, contractorId);
-    return this.sendSuccess(res, 200, 'Assignment retrieved successfully', assignment);
-  });
-
-  /**
-   * Retrieves all assignments for a specific worker
+   * Retrieves all task assignments allocated to a specific worker
    */
   getWorkerAssignments = this.catchAsync(async (req, res) => {
     const { workerId } = req.params;
     const contractorId = req.user._id;
     const assignments = await AssignmentService.getWorkerAssignments(workerId, contractorId);
-    return this.sendSuccess(res, 200, 'Worker assignments retrieved successfully', assignments);
+    return this.sendSuccess(res, 200, 'Worker task assignments retrieved successfully', assignments);
   });
 
   /**
-   * Retrieves all assignments linked to a specific job order
+   * Retrieves all worker task assignments linked to a specific job order
    */
   getOrderAssignments = this.catchAsync(async (req, res) => {
     const { orderId } = req.params;
     const contractorId = req.user._id;
     const assignments = await AssignmentService.getOrderAssignments(orderId, contractorId);
-    return this.sendSuccess(res, 200, 'Order assignments retrieved successfully', assignments);
+    return this.sendSuccess(res, 200, 'Order task assignments retrieved successfully', assignments);
   });
 
   /**
-   * Logs completed piece count progress for an active assignment
+   * Retrieves assignment details by ID
+   */
+  getAssignmentById = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const contractorId = req.user._id;
+    const assignment = await AssignmentService.getAssignmentById(id, contractorId);
+    return this.sendSuccess(res, 200, 'Assignment details retrieved successfully', assignment);
+  });
+
+  /**
+   * Updates completed piece count and operational progress on an assignment
    */
   updateProgress = this.catchAsync(async (req, res) => {
     const { id } = req.params;
-    const { completedQuantity } = req.body;
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
-    const updatedAssignment = await AssignmentService.updateProgress(id, completedQuantity, contractorId, ipAddress);
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const updatedAssignment = await AssignmentService.updateProgress(id, req.body, contractorId, ipAddress);
     return this.sendSuccess(res, 200, 'Assignment progress updated successfully', updatedAssignment);
   });
 }

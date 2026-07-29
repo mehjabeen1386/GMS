@@ -1,53 +1,53 @@
-// Purpose: Worker Payroll & Salary Calculation Controller Layer
+// Purpose: Piece-Rate Payroll & Worker Salary Calculation Controller Layer
 // Path: backend/src/controllers/SalaryController.js
 
 const BaseController = require('./BaseController');
 const SalaryService = require('../services/SalaryService');
 
 /**
- * Controller handling worker payroll processing, piece-rate calculation, and salary disbursement tracking.
+ * Controller handling worker payroll, piece-rate wage calculation, and payment transactions
  */
 class SalaryController extends BaseController {
   /**
-   * Processes piece-rate wage calculation and generates salary slip record
+   * Calculates piece-rate wages and generates draft salary payout for a worker
    */
   calculateSalary = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const salary = await SalaryService.calculateSalary(req.body, contractorId, ipAddress);
-    return this.sendSuccess(res, 201, 'Salary record calculated and generated successfully', salary);
+    return this.sendSuccess(res, 201, 'Salary calculated successfully', salary);
   });
 
   /**
-   * Retrieves a specific salary record by ID within contractor scope
+   * Marks a calculated salary slip as PAID and logs ledger debit transaction
+   */
+  paySalary = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const contractorId = req.user._id;
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const paidSalary = await SalaryService.paySalary(id, req.body, contractorId, ipAddress);
+    return this.sendSuccess(res, 200, 'Salary payment processed successfully', paidSalary);
+  });
+
+  /**
+   * Retrieves historical salary slips for a specific worker
+   */
+  getWorkerSalaries = this.catchAsync(async (req, res) => {
+    const { workerId } = req.params;
+    const contractorId = req.user._id;
+    const { page, limit } = this.getPaginationParams(req);
+    const salaries = await SalaryService.getWorkerSalaries(workerId, contractorId, page, limit);
+    return this.sendSuccess(res, 200, 'Worker salary history retrieved successfully', salaries);
+  });
+
+  /**
+   * Retrieves detailed breakdown for a single salary slip by ID
    */
   getSalaryById = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const contractorId = req.user._id;
     const salary = await SalaryService.getSalaryById(id, contractorId);
-    return this.sendSuccess(res, 200, 'Salary record retrieved successfully', salary);
-  });
-
-  /**
-   * Retrieves all payroll records for a specific worker
-   */
-  getWorkerSalaries = this.catchAsync(async (req, res) => {
-    const { workerId } = req.params;
-    const contractorId = req.user._id;
-    const salaries = await SalaryService.getWorkerSalaries(workerId, contractorId);
-    return this.sendSuccess(res, 200, 'Worker salary history retrieved successfully', salaries);
-  });
-
-  /**
-   * Updates payout status for a salary record (e.g., mark as PAID)
-   */
-  updateSalaryStatus = this.catchAsync(async (req, res) => {
-    const { id } = req.params;
-    const { status, paymentMethod } = req.body;
-    const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
-    const updatedSalary = await SalaryService.updateSalaryStatus(id, status, paymentMethod, contractorId, ipAddress);
-    return this.sendSuccess(res, 200, 'Salary payment status updated successfully', updatedSalary);
+    return this.sendSuccess(res, 200, 'Salary slip details retrieved successfully', salary);
   });
 }
 

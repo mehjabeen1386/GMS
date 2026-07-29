@@ -1,58 +1,53 @@
-// Purpose: Garment Job Order Management Controller Layer
+// Purpose: Garment Production Job Orders Controller Layer
 // Path: backend/src/controllers/OrderController.js
 
 const BaseController = require('./BaseController');
 const OrderService = require('../services/OrderService');
 
 /**
- * Controller handling garment production orders, milestone status transitions, and client job listings.
+ * Controller handling garment production job order management and lifecycle updates
  */
 class OrderController extends BaseController {
   /**
-   * Registers a new production job order
+   * Creates a new garment production job order
    */
   createOrder = this.catchAsync(async (req, res) => {
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const order = await OrderService.createOrder(req.body, contractorId, ipAddress);
-    return this.sendSuccess(res, 201, 'Production order created successfully', order);
+    return this.sendSuccess(res, 201, 'Job order created successfully', order);
   });
 
   /**
-   * Retrieves an order by ID within contractor scope
+   * Retrieves paginated job orders under contractor scope
+   */
+  getContractorOrders = this.catchAsync(async (req, res) => {
+    const contractorId = req.user._id;
+    const { page, limit } = this.getPaginationParams(req);
+    const orders = await OrderService.getContractorOrders(contractorId, page, limit);
+    return this.sendSuccess(res, 200, 'Job orders retrieved successfully', orders);
+  });
+
+  /**
+   * Retrieves job order details by ID
    */
   getOrderById = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const contractorId = req.user._id;
     const order = await OrderService.getOrderById(id, contractorId);
-    return this.sendSuccess(res, 200, 'Order retrieved successfully', order);
+    return this.sendSuccess(res, 200, 'Job order retrieved successfully', order);
   });
 
   /**
-   * Retrieves paginated job orders for a contractor with optional status or company filters
-   */
-  getContractorOrders = this.catchAsync(async (req, res) => {
-    const contractorId = req.user._id;
-    const { page, limit } = this.getPaginationParams(req);
-    const filters = {
-      status: req.query.status,
-      companyId: req.query.companyId,
-      search: req.query.search
-    };
-    const orders = await OrderService.getContractorOrders(contractorId, filters, page, limit);
-    return this.sendSuccess(res, 200, 'Orders retrieved successfully', orders);
-  });
-
-  /**
-   * Updates order production milestone status
+   * Updates job order lifecycle status
    */
   updateOrderStatus = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     const contractorId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
+    const ipAddress = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
     const updatedOrder = await OrderService.updateOrderStatus(id, status, contractorId, ipAddress);
-    return this.sendSuccess(res, 200, 'Order status updated successfully', updatedOrder);
+    return this.sendSuccess(res, 200, `Job order status updated to ${status}`, updatedOrder);
   });
 }
 
