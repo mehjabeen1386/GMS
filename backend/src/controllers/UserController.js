@@ -22,8 +22,8 @@ class UserController extends BaseController {
    */
   updateProfile = this.catchAsync(async (req, res) => {
     const userId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
-    const updatedUser = await UserService.updateUserProfile(userId, req.body, userId, ipAddress);
+    const clientIp = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    const updatedUser = await UserService.updateUserProfile(userId, req.body, userId, clientIp);
     return this.sendSuccess(res, 200, 'User profile updated successfully', updatedUser);
   });
 
@@ -50,14 +50,28 @@ class UserController extends BaseController {
   });
 
   /**
+   * Updates user system role permissions (Super Admin only)
+   */
+  updateUserRole = this.catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+    const adminId = req.user._id;
+    const clientIp = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    
+    const updatedUser = await UserService.updateUserRole(id, role, adminId, clientIp);
+    return this.sendSuccess(res, 200, 'User role updated successfully', updatedUser);
+  });
+
+  /**
    * Toggles user active account status (Admin only)
    */
   toggleUserStatus = this.catchAsync(async (req, res) => {
     const { id } = req.params;
     const { isActive } = req.body;
     const adminId = req.user._id;
-    const ipAddress = req.ip || req.headers['x-forwarded-for'] || '';
-    const user = await UserService.toggleUserStatus(id, isActive, adminId, ipAddress);
+    const clientIp = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+    
+    const user = await UserService.toggleUserStatus(id, isActive, adminId, clientIp);
     return this.sendSuccess(res, 200, `User status updated to ${isActive ? 'active' : 'inactive'}`, user);
   });
 }
