@@ -2,7 +2,15 @@
 // Path: backend/src/middleware/errorHandler.js
 
 const ApiError = require('../utils/ApiError');
-const logger = require('../../config/logger');
+const logger = require('../config/logger');
+
+/**
+ * 404 Catch-All Handler for routes that do not exist
+ */
+const notFoundHandler = (req, res, next) => {
+  const error = ApiError.notFound(`Route not found: ${req.originalUrl}`, 'ROUTE_NOT_FOUND');
+  next(error);
+};
 
 /**
  * Express Error Handling Middleware
@@ -78,4 +86,8 @@ const errorHandler = (err, req, res, next) => {
   return res.status(statusCode).json(responsePayload);
 };
 
-module.exports = errorHandler;
+// Export BOTH functions as an object
+module.exports = {
+  errorHandler,
+  notFoundHandler,
+};
