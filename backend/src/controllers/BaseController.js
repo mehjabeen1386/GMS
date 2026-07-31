@@ -14,9 +14,10 @@ class BaseController {
    * @param {number} statusCode - HTTP status code
    * @param {string} message - Response message
    * @param {Object|Array} [data=null] - Payload data
+   * @param {Object} [meta={}] - Meta payload
    */
-  sendSuccess(res, statusCode, message, data = null) {
-    return res.status(statusCode).json(new ApiResponse(statusCode, data, message));
+  sendSuccess(res, statusCode, message, data = null, meta = {}) {
+    return new ApiResponse(statusCode, message, data, meta).send(res);
   }
 
   /**

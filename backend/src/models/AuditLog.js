@@ -1,43 +1,54 @@
-// Purpose: Immutable Security Audit Log Schema
-// Path: backend/src/models/AuditLog.js
+/**
+ * Purpose: Immutable Security Audit Log Schema
+ * Path: backend/src/models/AuditLog.js
+ */
 
 const mongoose = require('mongoose');
 
-const auditLogSchema = new mongoose.Schema({
-  actorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true
+const auditLogSchema = new mongoose.Schema(
+  {
+    action: { 
+      type: String, 
+      required: true 
+    },
+    userId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User' 
+    },
+    actorId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User' 
+    },
+    module: { 
+      type: String, 
+      enum: ['AUTH', 'COMPANY', 'WORKSHOP', 'WORKER', 'INVENTORY', 'PRODUCTION', 'PAYROLL', 'AI', 'SETTINGS'],
+      default: 'AUTH',
+      required: false,
+      index: true 
+    },
+    role: { 
+      type: String, 
+      required: false 
+    },
+    details: { 
+      type: mongoose.Schema.Types.Mixed 
+    },
+    ip: { 
+      type: String 
+    },
+    ipAddress: { 
+      type: String 
+    },
+    userAgent: { 
+      type: String 
+    },
+    previousState: mongoose.Schema.Types.Mixed,
+    newState: mongoose.Schema.Types.Mixed
   },
-  role: {
-    type: String,
-    required: true
-  },
-  module: {
-    type: String,
-    enum: ['AUTH', 'COMPANY', 'WORKSHOP', 'WORKER', 'INVENTORY', 'PRODUCTION', 'PAYROLL', 'AI', 'SETTINGS'],
-    required: true,
-    index: true
-  },
-  action: {
-    type: String,
-    required: true // e.g., "CREATE_WORKER", "TRANSFER_WORKER", "PROCESS_SALARY"
-  },
-  details: {
-    type: String,
-    required: true
-  },
-  ipAddress: {
-    type: String,
-    required: true
-  },
-  userAgent: String,
-  previousState: mongoose.Schema.Types.Mixed,
-  newState: mongoose.Schema.Types.Mixed
-}, {
-  timestamps: { createdAt: true, updatedAt: false } // Immutable logs (No updatedAt)
-});
+  { 
+    timestamps: { createdAt: true, updatedAt: false } 
+  }
+);
 
 auditLogSchema.index({ createdAt: -1, module: 1 });
 

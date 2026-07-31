@@ -1,5 +1,7 @@
-// Purpose: Authentication & Session Business Logic Service Layer
-// Path: backend/src/services/AuthService.js
+/**
+ * Purpose: Authentication & Session Business Logic Service Layer
+ * Path: backend/src/services/AuthService.js
+ */
 
 const jwt = require('jsonwebtoken');
 const UserRepository = require('../repositories/UserRepository');
@@ -7,39 +9,70 @@ const AuditLogRepository = require('../repositories/AuditLogRepository');
 const ApiError = require('../utils/ApiError');
 const logger = require('../utils/logger');
 
-/**
- * Service layer for authentication, token generation, and credential verification.
- */
 class AuthService {
   /**
-   * Generates a signed JWT Access Token
-   * @param {Object} user - User document
+   * Helper to retrieve required environment variables safely.
    */
-  generateAccessToken(user) {
+  #getSecret(key) {
+    const secret = process.env[key];
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error(`CRITICAL: Environment variable ${key} is missing.`);
+    }
+    return secret || `fallback_${key.toLowerCase()}`;
+  }
+
+  /**
+   * Generates a signed JWT Access Token
+   * @param {Object} user - User document or object
+   */
+  generateAccessToken = (user) => {
+    const userId = user._id ? user._id.toString() : user.id;
     const payload = {
-      sub: user._id.toString(),
+      sub: userId,
+      id: userId,
       email: user.email,
       role: user.role
     };
 
-    return jwt.sign(payload, process.env.JWT_SECRET || 'fallback_secret', {
-      expiresIn: process.env.JWT_EXPIRES_IN || '1d'
+    return jwt.sign(payload, this.#getSecret('JWT_SECRET'), {
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m'
     });
-  }
+  };
 
   /**
    * Generates a signed JWT Refresh Token
-   * @param {Object} user - User document
+   * @param {Object} user - User document or object
    */
-  generateRefreshToken(user) {
+  generateRefreshToken = (user) => {
+    const userId = user._id ? user._id.toString() : user.id;
     const payload = {
-      sub: user._id.toString(),
-      tokenVersion: user.tokenVersion || 0
+      sub: userId,
+      id: userId,
+      tokenVersion: user.tokenVersion ?? 0
     };
 
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret', {
+    return jwt.sign(payload, this.#getSecret('JWT_REFRESH_SECRET'), {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
     });
+  };
+
+  /**
+   * Verifies and decodes a given JWT Access Token
+   * @param {string} token - Raw JWT token
+   * @returns {Object} Decoded payload
+   */
+  async verifyToken(token) {
+    if (!token) {
+      throw new ApiError(401, 'Token is required');
+    }
+
+    try {
+      const decoded = jwt.verify(token, this.#getSecret('JWT_SECRET'));
+      return decoded;
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError(401, 'Invalid or expired token');
+    }
   }
 
   /**
@@ -48,22 +81,28 @@ class AuthService {
    * @param {string} [ipAddress] - Client IP address for audit logging
    */
   async register(userData, ipAddress = '') {
-    const existingUser = await UserRepository.findByEmail(userData.email);
+    const normalizedEmail = userData.email?.toLowerCase().trim();
+    const existingUser = await UserRepository.findByEmail(normalizedEmail);
+    
     if (existingUser) {
       throw new ApiError(409, 'User with this email already exists');
     }
 
-    const user = await UserRepository.create(userData);
+    const user = await UserRepository.create({
+      ...userData,
+      email: normalizedEmail
+    });
 
-    // Remove password hash from returned object
-    const userObj = user.toObject();
+    const userObj = typeof user.toObject === 'function' ? user.toObject() : { ...user };
     delete userObj.password;
 
+    // Log registration audit safely
     await AuditLogRepository.logEvent({
       actorId: user._id,
-      action: 'USER_REGISTERED',
-      targetModel: 'User',
-      targetId: user._id,
+      userId: user._id,
+      action: 'REGISTER',
+      module: 'AUTH',
+      role: user.role || 'USER',
       ipAddress,
       details: { email: user.email, role: user.role }
     });
@@ -80,7 +119,9 @@ class AuthService {
    * @param {string} [ipAddress] - Client IP address for audit logging
    */
   async login(email, password, ipAddress = '') {
-    const user = await UserRepository.findByEmailWithPassword(email);
+    const normalizedEmail = email?.toLowerCase().trim();
+    const user = await UserRepository.findByEmailWithPassword(normalizedEmail);
+
     if (!user || user.isDeleted) {
       throw new ApiError(401, 'Invalid email or password');
     }
@@ -93,16 +134,16 @@ class AuthService {
     if (!isPasswordValid) {
       await AuditLogRepository.logEvent({
         actorId: user._id,
+        userId: user._id,
         action: 'LOGIN_FAILED',
-        targetModel: 'User',
-        targetId: user._id,
+        module: 'AUTH',
+        role: user.role || 'USER',
         ipAddress,
         details: { reason: 'Incorrect password' }
       });
       throw new ApiError(401, 'Invalid email or password');
     }
 
-    // Update last login timestamp
     await UserRepository.updateLastLogin(user._id);
 
     const accessToken = this.generateAccessToken(user);
@@ -110,20 +151,22 @@ class AuthService {
 
     await AuditLogRepository.logEvent({
       actorId: user._id,
+      userId: user._id,
       action: 'LOGIN_SUCCESS',
-      targetModel: 'User',
-      targetId: user._id,
+      module: 'AUTH',
+      role: user.role || 'USER',
       ipAddress,
       details: { email: user.email }
     });
 
     logger.info(`User authenticated successfully: ${user.email}`);
 
-    const userObj = user.toObject();
+    const userObj = typeof user.toObject === 'function' ? user.toObject() : { ...user };
     delete userObj.password;
 
     return {
       user: userObj,
+      token: accessToken,
       accessToken,
       refreshToken
     };
@@ -141,10 +184,11 @@ class AuthService {
     try {
       const decoded = jwt.verify(
         incomingRefreshToken,
-        process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret'
+        this.#getSecret('JWT_REFRESH_SECRET')
       );
 
-      const user = await UserRepository.findById(decoded.sub);
+      const userId = decoded.sub || decoded.id;
+      const user = await UserRepository.findById(userId);
       if (!user || user.isDeleted || !user.isActive) {
         throw new ApiError(401, 'Invalid refresh token session');
       }

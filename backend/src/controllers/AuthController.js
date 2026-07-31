@@ -35,10 +35,25 @@ class AuthController extends BaseController {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    return this.sendSuccess(res, 200, 'Login successful', {
-      user: result.user,
-      accessToken: result.accessToken
-    });
+    return this.sendSuccess(
+      res,
+      200,
+      'Login successful',
+      {
+        user: result.user,
+        accessToken: result.accessToken,
+        token: result.accessToken
+      }
+    );
+  });
+
+  getMe = this.catchAsync(async (req, res) => {
+    return this.sendSuccess(
+      res,
+      200,
+      'User profile fetched successfully',
+      req.user
+    );
   });
 
   refreshToken = this.catchAsync(async (req, res) => {
@@ -48,9 +63,15 @@ class AuthController extends BaseController {
 
     const result = await AuthService.refreshToken(token);
 
-    return this.sendSuccess(res, 200, 'Token refreshed', {
-      accessToken: result.accessToken
-    });
+    return this.sendSuccess(
+      res,
+      200,
+      'Token refreshed',
+      {
+        accessToken: result.accessToken,
+        token: result.accessToken
+      }
+    );
   });
 
   logout = this.catchAsync(async (req, res) => {

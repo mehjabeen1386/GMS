@@ -14,8 +14,6 @@ class OrderRepository extends BaseRepository {
 
   /**
    * Finds an order by ID with tenant isolation and full relational population
-   * @param {string} orderId - Order ObjectId
-   * @param {string} contractorId - Contractor User ObjectId
    */
   async findByIdAndContractor(orderId, contractorId) {
     return await this.model
@@ -27,9 +25,7 @@ class OrderRepository extends BaseRepository {
   }
 
   /**
-   * Finds an order by its unique system Order Number (e.g., ORD-2026-0001)
-   * @param {string} orderNumber - Unique Order Number
-   * @param {string} contractorId - Contractor User ObjectId
+   * Finds an order by its unique system Order Number
    */
   async findByOrderNumber(orderNumber, contractorId) {
     return await this.model
@@ -44,9 +40,22 @@ class OrderRepository extends BaseRepository {
   }
 
   /**
+   * Retrieves all job orders for a contractor with optional filters
+   */
+  async findByContractor(contractorId, filters = {}) {
+    const query = { contractorId, isDeleted: { $ne: true }, ...filters };
+    const orders = await this.model
+      .find(query)
+      .populate('companyId', 'companyName companyCode')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    const total = await this.model.countDocuments(query);
+    return { orders, total };
+  }
+
+  /**
    * Retrieves active job orders assigned to a specific workshop
-   * @param {string} workshopId - Workshop ObjectId
-   * @param {string} [status] - Optional order status filter
    */
   async findByWorkshop(workshopId, status = null) {
     const filter = { workshopId };
@@ -64,13 +73,8 @@ class OrderRepository extends BaseRepository {
 
   /**
    * Updates job order status and appends status history log entry
-   * @param {string} orderId - Order ObjectId
-   * @param {string} status - New order status ('PENDING', 'IN_PRODUCTION', 'COMPLETED', 'CANCELLED')
-   * @param {string} updatedByUserId - User ObjectId who initiated status update
-   * @param {string} [notes] - Optional status change notes
-   * @param {Object} [options] - Transaction session options
    */
-  async updateOrderStatus(orderId, status, updatedByUserId, notes = '', options = {}) {
+  async updateOrderStatus(orderId, status, updatedByUserId = null, notes = '', options = {}) {
     const statusEntry = {
       status,
       updatedBy: updatedByUserId,
@@ -96,12 +100,10 @@ class OrderRepository extends BaseRepository {
       .exec();
   }
 
-  /**
-   * Incrementally updates completed pieces count for an order
-   * @param {string} orderId - Order ObjectId
-   * @param {number} quantity - Quantity of completed pieces to increment
-   * @param {Object} [options] - Transaction session options
-   */
+  async updateStatus(orderId, status, updatedByUserId = null, notes = '', options = {}) {
+    return await this.updateOrderStatus(orderId, status, updatedByUserId, notes, options);
+  }
+
   async incrementCompletedQuantity(orderId, quantity, options = {}) {
     return await this.model
       .findOneAndUpdate(
