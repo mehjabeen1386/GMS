@@ -3,102 +3,117 @@
 
 const SalaryRepository = require('../repositories/SalaryRepository');
 const WorkerRepository = require('../repositories/WorkerRepository');
+const Assignment = require('../models/Assignment');
+const Ledger = require('../models/Ledger');
 const AuditLogRepository = require('../repositories/AuditLogRepository');
-const ApiError = require('../utils/ApiError');
-const logger = require('../utils/logger');
 
 /**
  * Service layer for worker payroll disbursements and wage calculations.
  */
 class SalaryService {
   /**
-   * Generates a salary disbursement record for a worker
-   * @param {Object} salaryData - Salary payroll payload
+   * Calculates piece-rate earnings and generates a draft salary slip
+   * @param {Object} payrollInput - Payroll calculation payload
    * @param {string} contractorId - Contractor User ObjectId
-   * @param {string} [ipAddress] - Client IP address
    */
-  async createSalary(salaryData, contractorId, ipAddress = '') {
-    // Verify worker exists and belongs to contractor
-    const worker = await WorkerRepository.findByIdAndContractor(salaryData.workerId, contractorId);
-    if (!worker) {
-      throw new ApiError(404, 'Worker not found or unauthorized access');
+  async calculateSalary(payrollInput, contractorId) {
+    const { workerId, startDate, endDate, bonus = 0, deductions = 0, notes = '' } = payrollInput;
+
+    // Verify worker exists under this contractor tenant
+    let worker = null;
+    if (WorkerRepository && typeof WorkerRepository.findByIdAndContractor === 'function') {
+      worker = await WorkerRepository.findByIdAndContractor(workerId, contractorId);
     }
 
-    const payload = {
-      ...salaryData,
-      contractorId
-    };
+    if (!worker) {
+      throw new Error('Worker not found under this contractor');
+    }
 
-    const salary = await SalaryRepository.create(payload);
-
-    await AuditLogRepository.logEvent({
-      actorId: contractorId,
-      action: 'SALARY_CREATED',
-      targetModel: 'Salary',
-      targetId: salary._id,
-      ipAddress,
-      details: { workerId: salary.workerId, netPayable: salary.netPayable, paymentStatus: salary.paymentStatus }
+    // Aggregate piece-rate earnings from completed assignments
+    const assignments = await Assignment.find({
+      contractorId,
+      workerId,
+      status: 'COMPLETED'
     });
 
-    logger.info(`Salary record generated for Worker: ${salaryData.workerId} [Net: ${salary.netPayable}]`);
+    const pieceRateEarnings = assignments.reduce((acc, item) => {
+      return acc + (item.totalAmount || (item.completedQuantity * item.ratePerPiece));
+    }, 0);
+
+    const netSalary = pieceRateEarnings + bonus - deductions;
+
+    const salaryPayload = {
+      contractorId,
+      workerId,
+      periodStart: startDate,
+      periodEnd: endDate,
+      pieceRateEarnings,
+      bonus,
+      deductions,
+      netSalary,
+      notes,
+      paymentStatus: 'PENDING'
+    };
+
+    return await SalaryRepository.create(salaryPayload);
+  }
+
+  /**
+   * Executes salary disbursement and logs double-entry financial ledger transaction
+   * @param {string} salaryId - Salary ObjectId
+   * @param {Object} paymentData - Payment metadata
+   * @param {string} contractorId - Contractor User ObjectId
+   */
+  async paySalary(salaryId, paymentData, contractorId) {
+    const salary = await SalaryRepository.findById(salaryId);
+    if (!salary || salary.contractorId.toString() !== contractorId.toString()) {
+      throw new Error('Salary record not found');
+    }
+
+    if (salary.paymentStatus === 'PAID') {
+      throw new Error('Salary slip has already been paid');
+    }
+
+    // Update salary payment status
+    if (typeof salary.save === 'function') {
+      salary.paymentStatus = 'PAID';
+      salary.paidAt = new Date();
+      salary.paymentMethod = paymentData.paymentMethod;
+      salary.referenceNumber = paymentData.referenceNumber;
+      await salary.save();
+    } else {
+      await SalaryRepository.markAsPaid(
+        salaryId,
+        contractorId,
+        paymentData.paymentMethod,
+        paymentData.referenceNumber
+      );
+      salary.paymentStatus = 'PAID';
+      salary.paidAt = new Date();
+    }
+
+    // Record DEBIT transaction in financial Ledger
+    await Ledger.create({
+      contractorId,
+      referenceId: salaryId,
+      type: 'DEBIT',
+      amount: salary.netSalary,
+      category: 'SALARY'
+    });
 
     return salary;
   }
 
-  /**
-   * Retrieves a salary record by ID with security verification
-   * @param {string} salaryId - Salary ObjectId
-   * @param {string} contractorId - Contractor User ObjectId
-   */
   async getSalaryById(salaryId, contractorId) {
     const salary = await SalaryRepository.findByIdAndContractor(salaryId, contractorId);
     if (!salary) {
-      throw new ApiError(404, 'Salary record not found or unauthorized access');
+      throw new Error('Salary record not found or unauthorized access');
     }
     return salary;
   }
 
-  /**
-   * Retrieves payroll history for a specific worker
-   * @param {string} workerId - Worker ObjectId
-   * @param {string} contractorId - Contractor User ObjectId
-   */
   async getWorkerSalaryHistory(workerId, contractorId) {
-    const worker = await WorkerRepository.findByIdAndContractor(workerId, contractorId);
-    if (!worker) {
-      throw new ApiError(404, 'Worker not found or unauthorized access');
-    }
-
     return await SalaryRepository.findByWorker(workerId);
-  }
-
-  /**
-   * Updates salary payment status (e.g., marking payroll as paid)
-   * @param {string} salaryId - Salary ObjectId
-   * @param {string} paymentStatus - New payment status ('PENDING', 'PAID')
-   * @param {string} contractorId - Contractor User ObjectId
-   * @param {string} [ipAddress] - Client IP address
-   */
-  async updatePaymentStatus(salaryId, paymentStatus, contractorId, ipAddress = '') {
-    const salary = await SalaryRepository.findByIdAndContractor(salaryId, contractorId);
-    if (!salary) {
-      throw new ApiError(404, 'Salary record not found or unauthorized access');
-    }
-
-    const updatedSalary = await SalaryRepository.updatePaymentStatus(salaryId, paymentStatus);
-
-    await AuditLogRepository.logEvent({
-      actorId: contractorId,
-      action: 'SALARY_PAYMENT_STATUS_UPDATED',
-      targetModel: 'Salary',
-      targetId: salaryId,
-      ipAddress,
-      details: { previousStatus: salary.paymentStatus, newStatus: paymentStatus }
-    });
-
-    logger.info(`Salary payment status updated for record ${salaryId} -> ${paymentStatus}`);
-
-    return updatedSalary;
   }
 }
 

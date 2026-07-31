@@ -13,6 +13,14 @@ class SalaryRepository extends BaseRepository {
   }
 
   /**
+   * Finds a salary record by ID
+   * @param {string} salaryId - Salary ObjectId
+   */
+  async findById(salaryId) {
+    return await this.model.findById(salaryId).exec();
+  }
+
+  /**
    * Finds a salary record by ID with full relational population
    * @param {string} salaryId - Salary ObjectId
    * @param {string} contractorId - Contractor User ObjectId
@@ -44,30 +52,7 @@ class SalaryRepository extends BaseRepository {
   }
 
   /**
-   * Retrieves pending payroll records for a given workshop and pay period
-   * @param {string} workshopId - Workshop ObjectId
-   * @param {Date|string} payPeriodStart - Period start date
-   * @param {Date|string} payPeriodEnd - Period end date
-   */
-  async findByWorkshopAndPeriod(workshopId, payPeriodStart, payPeriodEnd) {
-    return await this.model
-      .find({
-        workshopId,
-        payPeriodStart: { $lte: new Date(payPeriodEnd) },
-        payPeriodEnd: { $gte: new Date(payPeriodStart) },
-        isDeleted: { $ne: true }
-      })
-      .populate('workerId', 'workerCode userId')
-      .exec();
-  }
-
-  /**
    * Marks a salary record as paid and records disbursement metadata
-   * @param {string} salaryId - Salary ObjectId
-   * @param {string} paidByUserId - Contractor/Manager User ObjectId executing payment
-   * @param {string} paymentMethod - Payment method ('CASH', 'BANK_TRANSFER', 'UPI')
-   * @param {string} [transactionReference] - External transaction or receipt reference ID
-   * @param {Object} [options] - Transaction session options
    */
   async markAsPaid(salaryId, paidByUserId, paymentMethod = 'CASH', transactionReference = '', options = {}) {
     return await this.model
@@ -75,7 +60,7 @@ class SalaryRepository extends BaseRepository {
         { _id: salaryId, isDeleted: { $ne: true } },
         {
           $set: {
-            status: 'PAID',
+            paymentStatus: 'PAID',
             paidBy: paidByUserId,
             paymentMethod,
             transactionReference,

@@ -24,11 +24,42 @@ class UserRepository extends BaseRepository {
   }
 
   /**
+   * Finds a user by email including the password field for authentication
+   * @param {string} email - Normalized email address
+   */
+  async findByEmailWithPassword(email) {
+    return await this.model
+      .findOne({ email, isDeleted: { $ne: true } })
+      .select('+password')
+      .exec();
+  }
+
+  /**
    * Finds a user by email address
    * @param {string} email - Normalized email address
    */
   async findByEmail(email) {
     return await this.findOne({ email });
+  }
+
+  /**
+   * Updates last login timestamp for a user
+   * @param {string} userId - User ObjectId
+   */
+  async updateLastLogin(userId) {
+    return await this.model
+      .findByIdAndUpdate(userId, { $set: { lastLoginAt: new Date() } }, { new: true })
+      .exec();
+  }
+
+  /**
+   * Increments the token version to invalidate all active refresh tokens for user
+   * @param {string} userId - User ObjectId
+   */
+  async incrementTokenVersion(userId) {
+    return await this.model
+      .findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } }, { new: true })
+      .exec();
   }
 
   /**

@@ -1,7 +1,10 @@
-// Purpose: Core Authentication & Role Management Schema
-// Path: backend/src/models/User.js
+/**
+ * Purpose: Core Authentication & Role Management Schema
+ * Path: backend/src/models/User.js
+ */
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -79,5 +82,18 @@ const userSchema = new mongoose.Schema({
 
 userSchema.index({ username: 1, role: 1 });
 userSchema.index({ email: 1, isDeleted: 1 });
+
+// Automatically hash password before saving if modified
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Compare password method attached to Mongoose Document instance
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);
