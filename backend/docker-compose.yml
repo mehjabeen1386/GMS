@@ -1,0 +1,57 @@
+# Purpose: Local Multi-Container Deployment Orchestration (Backend API + MongoDB)
+# Path: backend/docker-compose.yml
+
+services:
+  # ==========================================
+  # Service 1: Garment Backend Express API
+  # ==========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: garment_backend_api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/garment_production
+      - JWT_SECRET=dev_docker_secret_key_min_32_characters_long
+      - JWT_EXPIRES_IN=1d
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - garment_network
+
+  # ==========================================
+  # Service 2: MongoDB Database Engine
+  # ==========================================
+  mongodb:
+    image: mongo:7.0
+    container_name: garment_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - garment_network
+
+# Persistent Storage Volumes
+volumes:
+  mongodb_data:
+    driver: local
+
+# Isolated Internal Container Network
+networks:
+  garment_network:
+    driver: bridge
