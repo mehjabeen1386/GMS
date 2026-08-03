@@ -6,7 +6,11 @@
 const http = require('http');
 const app = require('./app');
 const config = require('./config/environment');
-const connectDB = require('./config/database');
+
+// UPDATED: Pointing to db.js instead of database.js
+// Note: If config folder is at backend/config/db.js, use require('../config/db')
+const { connectDB, closeDB } = require('./config/db');
+
 const { initSocket } = require('./socket');
 
 // Handle Uncaught Synchronous Exceptions Globally
@@ -31,7 +35,7 @@ const startServer = async () => {
     const PORT = config.port || 5000;
     server.listen(PORT, () => {
       console.log('=======================================================');
-      console.log('            GARMENT BACKEND API ENGINE ACTIVE          ');
+      console.log('           GARMENT BACKEND API ENGINE ACTIVE          ');
       console.log(` Environment : ${config.env.toUpperCase()}`);
       console.log(` Server Port : ${PORT}`);
       console.log(` Base URL    : http://localhost:${PORT}/api/v1`);
@@ -50,16 +54,18 @@ startServer();
 process.on('unhandledRejection', (err) => {
   console.error('FATAL: UNHANDLED PROMISE REJECTION! Terminating server...');
   console.error(err.name, err.message);
-  server.close(() => {
+  server.close(async () => {
+    await closeDB();
     process.exit(1);
   });
 });
 
-// Handle SIGTERM OS Termination Signals (e.g., Docker / Kubernetes / Heroku)
+// Handle SIGTERM OS Termination Signals (e.g., Docker / Kubernetes)
 process.on('SIGTERM', () => {
   console.log('SIGTERM RECEIVED. Executing graceful server shutdown...');
-  server.close(() => {
-    console.log('HTTP Server closed successfully.');
+  server.close(async () => {
+    await closeDB();
+    console.log('HTTP Server and DB connections closed successfully.');
     process.exit(0);
   });
 });
@@ -67,8 +73,9 @@ process.on('SIGTERM', () => {
 // Handle SIGINT OS Termination Signals (e.g., Ctrl+C in CLI)
 process.on('SIGINT', () => {
   console.log('SIGINT RECEIVED. Executing graceful server shutdown...');
-  server.close(() => {
-    console.log('HTTP Server closed successfully.');
+  server.close(async () => {
+    await closeDB();
+    console.log('HTTP Server and DB connections closed successfully.');
     process.exit(0);
   });
 });
