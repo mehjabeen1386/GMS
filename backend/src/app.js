@@ -1,73 +1,83 @@
-/**
- * Purpose: Express Core App Initialization & Middleware Pipeline
- * Path: backend/src/app.js
- */
+// Purpose: Next.js Framework Configuration, API Proxy Rewrites & Runtime Settings
+// Path: frontend/next.config.js
 
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Generate standalone build for Docker production image
+  output: "standalone",
 
-const config = require("./config/environment");
-const routes = require("./routes");
-const {
-  errorHandler,
-  notFoundHandler,
-} = require("./middlewares/errorHandler");
+  // Enable React Strict Mode
+  reactStrictMode: true,
 
-// Initialize Express application
-const app = express();
+  // Enable SWC minification for native speed in development/production
+  swcMinify: true,
 
-// Security HTTP Headers
-app.use(helmet());
+  // API Rewrites to proxy requests to backend service, avoiding CORS in development
+  async rewrites() {
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-// Cross-Origin Resource Sharing Configuration
-const corsOptions = {
-  origin: config.cors?.origin || "*",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-  ],
-  credentials: true,
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${backendUrl}/api/v1/:path*`,
+      },
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: "/health",
+        destination: `${backendUrl}/health`,
+      },
+    ];
+  },
+
+  // Security Headers Configuration
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
+          },
+        ],
+      },
+    ];
+  },
+
+  // Image Optimization Configuration
+  images: {
+    domains: [
+      "localhost",
+      "res.cloudinary.com",
+      "s3.amazonaws.com",
+    ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
-app.use(cors(corsOptions));
-
-// HTTP Request Logging
-if (config.env !== "test") {
-  app.use(
-    morgan(config.env === "development" ? "dev" : "combined")
-  );
-}
-
-// Request Parsing Middlewares
-app.use(express.json({ limit: "10mb" }));
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb",
-  })
-);
-
-// Health Check Endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "Garment Manufacturing Backend API is operational",
-    timestamp: new Date().toISOString(),
-    environment: config.env,
-  });
-});
-
-// Mount API v1 Central Router
-app.use("/api/v1", routes);
-
-// Catch-All 404 Route Handler
-app.use(notFoundHandler);
-
-// Centralized Global Error Handler Middleware
-app.use(errorHandler);
-
-module.exports = app;
+module.exports = nextConfig;
