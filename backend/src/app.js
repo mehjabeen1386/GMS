@@ -1,83 +1,60 @@
-// Purpose: Next.js Framework Configuration, API Proxy Rewrites & Runtime Settings
-// Path: frontend/next.config.js
+// Purpose: Express Application Configuration Setup with Route Mounting
+// Path: backend/src/app.js
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Generate standalone build for Docker production image
-  output: "standalone",
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
-  // Enable React Strict Mode
-  reactStrictMode: true,
+const app = express();
 
-  // Enable SWC minification for native speed in development/production
-  swcMinify: true,
+// 1. Enable CORS for local Next.js frontend
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-  // API Rewrites to proxy requests to backend service, avoiding CORS in development
-  async rewrites() {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+// 2. Parse Incoming Payloads
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-    return [
-      {
-        source: "/api/v1/:path*",
-        destination: `${backendUrl}/api/v1/:path*`,
-      },
-      {
-        source: "/api/:path*",
-        destination: `${backendUrl}/api/:path*`,
-      },
-      {
-        source: "/health",
-        destination: `${backendUrl}/health`,
-      },
-    ];
-  },
-
-  // Security Headers Configuration
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "origin-when-cross-origin",
-          },
-        ],
-      },
-    ];
-  },
-
-  // Image Optimization Configuration
-  images: {
-    domains: [
-      "localhost",
-      "res.cloudinary.com",
-      "s3.amazonaws.com",
-    ],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
-  },
+// Helper function to safely mount routes if their file exists
+const mountRoute = (path, routeFileName) => {
+  try {
+    const routeModule = require(`./routes/${routeFileName}`);
+    app.use(path, routeModule);
+    console.log(`[Route Loaded] Mounted ${path} -> ./routes/${routeFileName}`);
+  } catch (err) {
+    if (err.code === 'MODULE_NOT_FOUND' && err.message.includes(routeFileName)) {
+      console.warn(`[Route Warning] Skipping ${path} - ./routes/${routeFileName} not found.`);
+    } else {
+      console.error(`[Route Error] Failed to load ./routes/${routeFileName}:`, err);
+    }
+  }
 };
 
-module.exports = nextConfig;
+// 3. Mount Routes under /api/v1
+mountRoute('/api/v1/auth', 'authRoutes');
+
+// Mount Orders routes (handling both /orders and /job-orders)
+// 3. Mount Routes under /api/v1
+mountRoute('/api/v1/auth', 'authRoutes');
+mountRoute('/api/v1/orders', 'orderRoutes');
+mountRoute('/api/v1/job-orders', 'orderRoutes'); // Maps /job-orders to orderRoutes as well
+mountRoute('/api/v1/workers', 'workerRoutes');
+
+// Mount Inventory & Fabric routes
+mountRoute('/api/v1/inventory', 'inventoryRoutes');
+mountRoute('/api/v1/inventory', 'fabricRoutes');
+
+// Mount Workers routes
+mountRoute('/api/v1/workers', 'workerRoutes');
+
+// Healthcheck Route
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
+
+module.exports = app;

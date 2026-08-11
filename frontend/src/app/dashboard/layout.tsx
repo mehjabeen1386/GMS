@@ -63,14 +63,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Body Area with Sidebar and Main Page Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Navigation Sidebar */}
-        <Sidebar
-          isMobileOpen={isMobileOpen}
-          onMobileClose={() => setIsMobileOpen(false)}
-        />
+        {/* Navigation Sidebar Wrapper */}
+        <div className="relative z-30 flex-shrink-0">
+          <Sidebar
+            isMobileOpen={isMobileOpen}
+            onMobileClose={() => setIsMobileOpen(false)}
+          />
+        </div>
 
         {/* Dynamic Main Dashboard Content */}
-        <main className="custom-scrollbar flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 lg:p-8">
+        <main className="custom-scrollbar min-w-0 flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl space-y-6">
             {children}
           </div>

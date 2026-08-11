@@ -24,7 +24,7 @@ export default function RootPage() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-sm font-medium text-muted-foreground">Initializing Garmint ERP...</p>
+          <p className="text-sm font-medium text-muted-foreground">Initializing Garment ERP...</p>
         </div>
       </div>
     );
@@ -39,7 +39,7 @@ export default function RootPage() {
             <div className="rounded-lg bg-primary/10 p-2 text-primary">
               <Factory className="h-6 w-6" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">Garmint ERP</span>
+            <span className="text-xl font-bold tracking-tight text-foreground">Garment ERP</span>
           </div>
           <div className="flex items-center space-x-4">
             <Link
@@ -126,7 +126,7 @@ export default function RootPage() {
 
       {/* Footer */}
       <footer className="border-t border-border bg-card py-8 text-center text-sm text-muted-foreground">
-        <p>© 2026 Garmint ERP. All rights reserved. Enterprise Garment Manufacturing Software.</p>
+        <p>© 2026 Garment ERP. All rights reserved. Enterprise Garment Manufacturing Software.</p>
       </footer>
     </div>
   );

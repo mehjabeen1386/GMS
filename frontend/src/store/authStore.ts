@@ -37,8 +37,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   // Set user session state and persist credentials to LocalStorage
   setAuth: (user: UserProfile, token: string) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('garmint_token', token);
-      localStorage.setItem('garmint_user', JSON.stringify(user));
+      localStorage.setItem('garment_token', token);
+      localStorage.setItem('garment_user', JSON.stringify(user));
     }
     set({
       user,
@@ -52,8 +52,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   // Clear user state and wipe session tokens from LocalStorage
   logout: () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('garmint_token');
-      localStorage.removeItem('garmint_user');
+      localStorage.removeItem('garment_token');
+      localStorage.removeItem('garment_user');
     }
     set({
       user: null,
@@ -68,8 +68,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   initializeAuth: () => {
     if (typeof window !== 'undefined') {
       try {
-        const storedToken = localStorage.getItem('garmint_token');
-        const storedUser = localStorage.getItem('garmint_user');
+        const storedToken = localStorage.getItem('garment_token');
+        const storedUser = localStorage.getItem('garment_user');
 
         if (storedToken && storedUser) {
           const parsedUser: UserProfile = JSON.parse(storedUser);
@@ -83,8 +83,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         }
       } catch (err) {
         console.error('Failed to parse saved auth credentials:', err);
-        localStorage.removeItem('garmint_token');
-        localStorage.removeItem('garmint_user');
+        localStorage.removeItem('garment_token');
+        localStorage.removeItem('garment_user');
       }
     }
 

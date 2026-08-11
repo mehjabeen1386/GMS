@@ -13,33 +13,73 @@ class UserRepository extends BaseRepository {
   }
 
   /**
+   * Overridden create method to map frontend form inputs to Mongoose Schema constraints
+   */
+  async create(data) {
+    const payload = { ...data };
+
+    // 1. Normalize Email
+    if (payload.email) {
+      payload.email = payload.email.toLowerCase().trim();
+    }
+
+    // 2. Ensure fullName matches Mongoose schema required field
+    payload.fullName = payload.fullName || payload.name || payload.username || 'Contractor Admin';
+
+    // 3. Ensure phone matches Mongoose schema required field
+    payload.phone = payload.phone || payload.mobileNumber || payload.mobile || payload.phoneNumber || '0000000000';
+
+    // 4. Auto-generate unique username if not provided
+    if (!payload.username) {
+      const emailPrefix = payload.email ? payload.email.split('@')[0] : 'user';
+      payload.username = `${emailPrefix}_${Date.now()}`;
+    }
+
+    // 5. Set default Role for Contractor Workspace provision
+    if (!payload.role || payload.role === 'USER') {
+      payload.role = 'CONTRACTOR';
+    }
+
+    // 6. Explicitly set soft-delete status flags
+    payload.isDeleted = false;
+    payload.isActive = true;
+
+    return await super.create(payload);
+  }
+
+  /**
    * Finds a user by username including the password field for credential verification
-   * @param {string} username - Normalized username
+   * @param {string} username - Username query
    */
   async findByUsernameWithPassword(username) {
+    const cleanUsername = username ? username.toLowerCase().trim() : '';
     return await this.model
-      .findOne({ username, isDeleted: { $ne: true } })
+      .findOne({ username: cleanUsername, isDeleted: { $ne: true } })
       .select('+password')
       .exec();
   }
 
   /**
    * Finds a user by email including the password field for authentication
-   * @param {string} email - Normalized email address
+   * @param {string} email - Raw or normalized email address
    */
   async findByEmailWithPassword(email) {
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
     return await this.model
-      .findOne({ email, isDeleted: { $ne: true } })
+      .findOne({ email: cleanEmail, isDeleted: { $ne: true } })
       .select('+password')
       .exec();
   }
 
   /**
    * Finds a user by email address
-   * @param {string} email - Normalized email address
+   * @param {string} email - Raw or normalized email address
    */
   async findByEmail(email) {
-    return await this.findOne({ email });
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    return await this.model
+      .findOne({ email: cleanEmail, isDeleted: { $ne: true } })
+      .exec();
   }
 
   /**

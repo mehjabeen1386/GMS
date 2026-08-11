@@ -26,6 +26,10 @@ export default function Navbar({ onMobileMenuToggle }: NavbarProps) {
   const { user, logout } = useAuthStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Extract display values safely from auth store payload
+  const displayName = user?.fullName || user?.name || user?.username || 'User';
+  const displayEmail = user?.email || 'user@garment.com';
+
   const handleLogout = () => {
     logout();
     router.push('/login');
@@ -51,7 +55,7 @@ export default function Navbar({ onMobileMenuToggle }: NavbarProps) {
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold leading-none tracking-tight text-foreground">
-                Garmint ERP
+                Garment ERP
               </span>
               <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Garment Operations
@@ -62,14 +66,6 @@ export default function Navbar({ onMobileMenuToggle }: NavbarProps) {
 
         {/* Right Section: Tenant Badge, Notifications & Profile Dropdown */}
         <div className="flex items-center space-x-3 sm:space-x-4">
-          {/* Tenant / Contractor Context Indicator */}
-          {user?.tenantId && (
-            <div className="hidden items-center space-x-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground md:flex">
-              <Building2 className="h-3.5 w-3.5 text-primary" />
-              <span>Tenant: {user.tenantId.substring(0, 8)}...</span>
-            </div>
-          )}
-
           {/* User Role Badge */}
           {user?.role && (
             <div className="hidden items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary sm:inline-flex">
@@ -95,14 +91,14 @@ export default function Navbar({ onMobileMenuToggle }: NavbarProps) {
               className="flex items-center space-x-2 rounded-lg p-1.5 transition-colors hover:bg-muted focus:outline-none"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                {displayName.charAt(0).toUpperCase()}
               </div>
               <div className="hidden flex-col text-left lg:flex">
                 <span className="line-clamp-1 text-xs font-semibold text-foreground">
-                  {user?.name || 'User'}
+                  {displayName}
                 </span>
                 <span className="line-clamp-1 text-[10px] text-muted-foreground">
-                  {user?.email || 'user@garmint.com'}
+                  {displayEmail}
                 </span>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -118,20 +114,20 @@ export default function Navbar({ onMobileMenuToggle }: NavbarProps) {
                 <div className="absolute right-0 z-20 mt-2 w-56 divide-y divide-border rounded-md border border-border bg-popover text-popover-foreground shadow-lg ring-1 ring-black/5">
                   <div className="px-4 py-2">
                     <p className="text-xs font-medium text-foreground">
-                      {user?.name || 'User'}
+                      {displayName}
                     </p>
                     <p className="truncate text-[11px] text-muted-foreground">
-                      {user?.email || 'user@garmint.com'}
+                      {displayEmail}
                     </p>
                   </div>
                   <div className="py-1">
                     <Link
-                      href="/dashboard/profile"
+                      href="/settings"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center px-4 py-2 text-xs text-foreground transition-colors hover:bg-muted"
                     >
                       <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Account Profile
+                      Account Settings
                     </Link>
                   </div>
                   <div className="py-1">

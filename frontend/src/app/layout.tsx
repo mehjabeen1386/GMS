@@ -1,5 +1,6 @@
 // Purpose: Root App Router Layout, Meta Configuration & React Query Provider Envelope
 // Path: frontend/src/app/layout.tsx
+
 import React from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -13,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Garmint ERP - Garment Manufacturing Management System',
+  title: 'Garment ERP - Garment Manufacturing Management System',
   description:
     'Enterprise Cloud ERP for Garment Contractors, Fabric Tracking, Job Orders, and Piece-Rate Payroll',
   keywords: [
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     'Piece-Rate Payroll',
     'Fabric Tracking',
   ],
-  authors: [{ name: 'Garmint Engineering Team' }],
+  authors: [{ name: 'Garment Engineering Team' }],
 };
 
 export default function RootLayout({

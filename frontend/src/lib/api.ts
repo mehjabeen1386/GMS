@@ -1,51 +1,36 @@
-// Purpose: Axios AxiosInstance Config, JWT Request Interceptor & Global Error Handling
 // Path: frontend/src/lib/api.ts
-
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-// Create central Axios client instance targeting the backend API base path
 const api: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api/v1',
+  baseURL: 'http://localhost:5000/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15-second timeout for standard HTTP API requests
+  timeout: 15000,
 });
 
-// Request Interceptor: Inject JWT Bearer Token into headers when present
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('garmint_token');
+      const token = localStorage.getItem('garment_token');
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle API errors and token expiration
+// Response Interceptor: Disabled auto-redirect loop during testing
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response) {
-      // Automatic session cleanup on 401 Unauthorized token invalidation
-      if (error.response.status === 401 && typeof window !== 'undefined') {
-        localStorage.removeItem('garmint_token');
-        localStorage.removeItem('garmint_user');
-
-        // Redirect to login page if user is currently on a protected route
-        if (
-          !window.location.pathname.startsWith('/login') &&
-          !window.location.pathname.startsWith('/register')
-        ) {
-          window.location.href = '/login?expired=true';
-        }
-      }
+    if (error.response?.status === 401) {
+      console.warn('Authentication token invalid or rejected by backend endpoint.');
+      // Auto-redirect disabled to stop login bounce loop:
+      // localStorage.removeItem('garment_token');
+      // window.location.href = '/login?expired=true';
     }
     return Promise.reject(error);
   }

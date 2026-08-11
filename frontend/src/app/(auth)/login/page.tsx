@@ -9,8 +9,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
-import api from '@/lib/api';
 import { Factory, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
 // Validation Schema for Login Input Fields
@@ -45,14 +45,16 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setServerError(null);
     try {
-      const response = await api.post('/auth/login', {
+      const response = await axios.post('http://localhost:5000/api/v1/auth/login', {
         email: data.email,
         password: data.password,
       });
-      const { user, token } = response.data.data || response.data;
+
+      const { user, token, accessToken } = response.data.data || response.data;
+      const sessionToken = token || accessToken;
       
       // Update Zustand Auth Store state and local storage
-      setAuth(user, token);
+      setAuth(user, sessionToken);
       
       // Redirect to dashboard upon successful session creation
       router.push('/dashboard');
@@ -76,7 +78,7 @@ export default function LoginPage() {
           </div>
         </div>
         <h2 className="mt-4 text-center text-3xl font-extrabold tracking-tight text-foreground">
-          Sign in to Garmint ERP
+          Sign in to Garment ERP
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Enterprise Garment Production & Piece-Rate Platform
@@ -117,7 +119,7 @@ export default function LoginPage() {
                   {...register('email')}
                   type="email"
                   autoComplete="email"
-                  placeholder="contractor@garmint.com"
+                  placeholder="contractor@garment.com"
                   className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>

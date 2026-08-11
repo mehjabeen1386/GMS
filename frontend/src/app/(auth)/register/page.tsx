@@ -56,7 +56,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setServerError(null);
     try {
-      const response = await api.post('/auth/register', {
+      const response = await api.post('/v1/auth/register', {
         name: data.name,
         companyName: data.companyName,
         email: data.email,

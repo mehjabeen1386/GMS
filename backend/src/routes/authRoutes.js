@@ -7,7 +7,6 @@ const router = express.Router();
 
 const authController = require('../controllers/AuthController');
 const authenticate = require('../middlewares/authenticate');
-const { rateLimiter } = require('../middlewares/rateLimiter');
 
 // Import validators
 const authValidators = require('../validators/authValidator');
@@ -28,43 +27,38 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
-// Safe rate limiter check
-const safeLimiter = (options) => {
-  if (typeof rateLimiter === 'function') {
-    return rateLimiter(options);
-  }
-  return (req, res, next) => next();
-};
-
+// Register endpoint
 router.post(
   '/register',
-  safeLimiter({ windowMs: 15 * 60 * 1000, max: 10 }),
-  ...registerValidator, // Spread array elements safely
+  ...registerValidator,
   handleValidation,
   (req, res, next) => authController.register(req, res, next)
 );
 
+// Login endpoint
 router.post(
   '/login',
-  safeLimiter({ windowMs: 15 * 60 * 1000, max: 15 }),
-  ...loginValidator, // Spread array elements safely
+  ...loginValidator,
   handleValidation,
   (req, res, next) => authController.login(req, res, next)
 );
 
+// Refresh Token endpoint
 router.post(
   '/refresh-token',
-  ...refreshTokenValidator, // Spread array elements safely
+  ...refreshTokenValidator,
   handleValidation,
   (req, res, next) => authController.refreshToken(req, res, next)
 );
 
+// Logout endpoint
 router.post(
   '/logout',
   authenticate,
   (req, res, next) => authController.logout(req, res, next)
 );
 
+// Profile endpoint
 router.get(
   '/me',
   authenticate,

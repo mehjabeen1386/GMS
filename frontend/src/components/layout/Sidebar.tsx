@@ -31,6 +31,7 @@ interface NavItem {
   roles?: Array<'CONTRACTOR' | 'SUPER_ADMIN' | 'WORKER'>;
 }
 
+// Updated paths to match app folder structure directly:
 const navItems: NavItem[] = [
   {
     title: 'Dashboard',
@@ -39,42 +40,42 @@ const navItems: NavItem[] = [
   },
   {
     title: 'Fabric Inventory',
-    href: '/dashboard/fabrics',
+    href: '/inventory',
     icon: Scissors,
     roles: ['CONTRACTOR', 'SUPER_ADMIN'],
   },
   {
     title: 'Job Orders',
-    href: '/dashboard/job-orders',
+    href: '/orders',
     icon: ClipboardList,
   },
   {
     title: 'Workshops',
-    href: '/dashboard/workshops',
+    href: '/production',
     icon: Building2,
     roles: ['CONTRACTOR', 'SUPER_ADMIN'],
   },
   {
     title: 'Piece-Rate Payroll',
-    href: '/dashboard/payroll',
+    href: '/workers/payouts',
     icon: Wallet,
     roles: ['CONTRACTOR', 'SUPER_ADMIN'],
   },
   {
     title: 'Reports & Audits',
-    href: '/dashboard/reports',
+    href: '/reports',
     icon: BarChart3,
     roles: ['CONTRACTOR', 'SUPER_ADMIN'],
   },
   {
     title: 'Worker Management',
-    href: '/dashboard/workers',
+    href: '/workers',
     icon: Users,
     roles: ['CONTRACTOR', 'SUPER_ADMIN'],
   },
   {
     title: 'Settings',
-    href: '/dashboard/settings',
+    href: '/settings',
     icon: Settings,
   },
 ];
@@ -99,20 +100,20 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container - Mobile: Fixed Drawer | Desktop: Sticky Layout Column */}
       <aside
         className={cn(
-          'fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-border bg-card flex flex-col transition-transform duration-300 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-300 lg:sticky lg:top-16 lg:z-0 lg:h-[calc(100vh-4rem)] lg:translate-x-0',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Mobile Header with Close Button */}
-        <div className="flex h-16 items-center justify-between px-6 border-b border-border lg:hidden">
+        <div className="flex h-16 items-center justify-between border-b border-border px-6 lg:hidden">
           <span className="font-bold text-foreground">Navigation Menu</span>
           <button
             type="button"
             onClick={onMobileClose}
-            className="p-1 rounded-md text-muted-foreground hover:text-foreground"
+            className="rounded-md p-1 text-muted-foreground hover:text-foreground"
             aria-label="Close Navigation Sidebar"
           >
             <X className="h-5 w-5" />
@@ -120,11 +121,11 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
         </div>
 
         {/* Main Navigation Links List */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
+        <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-6">
           <nav className="space-y-1.5">
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
-              // Exact match for dashboard root, startsWith match for nested routes
+              // Exact match for root items or nested match
               const isActive =
                 item.href === '/dashboard'
                   ? pathname === '/dashboard'
@@ -136,7 +137,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                   href={item.href}
                   onClick={onMobileClose}
                   className={cn(
-                    'flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -158,8 +159,8 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
         </div>
 
         {/* Sidebar Footer Badge */}
-        <div className="p-4 border-t border-border bg-muted/30">
-          <div className="flex items-center space-x-3 px-2 py-1.5 rounded-md bg-card border border-border">
+        <div className="border-t border-border bg-muted/30 p-4">
+          <div className="flex items-center space-x-3 rounded-md border border-border bg-card px-2 py-1.5">
             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="text-xs font-semibold text-muted-foreground">
               Production System v1.0

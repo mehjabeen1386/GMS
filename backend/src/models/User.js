@@ -1,7 +1,5 @@
-/**
- * Purpose: Core Authentication & Role Management Schema
- * Path: backend/src/models/User.js
- */
+// Purpose: Core Authentication & Role Management Schema
+// Path: backend/src/models/User.js
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -25,7 +23,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select: false // Excluded from default queries for security
+    select: false
   },
   role: {
     type: String,
@@ -83,9 +81,15 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ username: 1, role: 1 });
 userSchema.index({ email: 1, isDeleted: 1 });
 
-// Automatically hash password before saving if modified
+// Automatically hash password before saving ONLY if modified and NOT already hashed
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
+  
+  // Prevent double-hashing if password was pre-hashed by repository/service
+  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) {
+    return next();
+  }
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();

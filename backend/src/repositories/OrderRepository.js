@@ -1,7 +1,14 @@
 // Purpose: Garment Production Job Order Data Access Repository Layer
 // Path: backend/src/repositories/OrderRepository.js
 
+const mongoose = require('mongoose');
 const BaseRepository = require('./BaseRepository');
+
+// Register relational models explicitly to prevent MissingSchemaError during .populate()
+require('../models/Cloth');
+require('../models/Company');
+require('../models/Workshop');
+
 const Order = require('../models/Order');
 
 /**
@@ -16,6 +23,11 @@ class OrderRepository extends BaseRepository {
    * Finds an order by ID with tenant isolation and full relational population
    */
   async findByIdAndContractor(orderId, contractorId) {
+    // Guard against literal string "[id]" or invalid ObjectId lengths
+    if (!orderId || orderId === '[id]' || !mongoose.Types.ObjectId.isValid(orderId)) {
+      return null;
+    }
+
     return await this.model
       .findOne({ _id: orderId, contractorId, isDeleted: { $ne: true } })
       .populate('companyId', 'companyName companyCode')
