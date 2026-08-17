@@ -37,10 +37,6 @@ const mountRoute = (path, routeFileName) => {
 
 // 3. Mount Routes under /api/v1
 mountRoute('/api/v1/auth', 'authRoutes');
-
-// Mount Orders routes (handling both /orders and /job-orders)
-// 3. Mount Routes under /api/v1
-mountRoute('/api/v1/auth', 'authRoutes');
 mountRoute('/api/v1/orders', 'orderRoutes');
 mountRoute('/api/v1/job-orders', 'orderRoutes'); // Maps /job-orders to orderRoutes as well
 mountRoute('/api/v1/workers', 'workerRoutes');
@@ -49,8 +45,8 @@ mountRoute('/api/v1/workers', 'workerRoutes');
 mountRoute('/api/v1/inventory', 'inventoryRoutes');
 mountRoute('/api/v1/inventory', 'fabricRoutes');
 
-// Mount Workers routes
-mountRoute('/api/v1/workers', 'workerRoutes');
+// Mount Dashboard / Reports routes
+// mountRoute('/api/v1/reports', 'dashboardRoutes');
 
 // Healthcheck Route
 app.get('/health', (req, res) => {

@@ -233,6 +233,17 @@ export default function JobOrdersPage() {
   const onCreateOrder = async (data: CreateOrderFormData) => {
     setServerError(null);
     try {
+      // 🛠️ Safe date formatting function (handles DD-MM-YYYY or YYYY-MM-DD)
+      const parseDateToISO = (dateStr: string) => {
+        if (!dateStr) return new Date().toISOString();
+        // Agar date DD-MM-YYYY format mein hai toh usko YYYY-MM-DD mein convert karein
+        if (dateStr.includes('-') && dateStr.split('-')[0].length === 2) {
+          const [day, month, year] = dateStr.split('-');
+          return new Date(`${year}-${month}-${day}`).toISOString();
+        }
+        return new Date(dateStr).toISOString();
+      };
+
       const payload = {
         orderNumber: data.orderNumber,
         clientName: data.clientName,
@@ -244,25 +255,14 @@ export default function JobOrdersPage() {
           totalRequiredMeters:
             Number(data.quantity) * Number(data.consumptionPerPieceMeters),
         },
-        startDate: new Date(data.startDate).toISOString(),
-        dueDate: new Date(data.dueDate).toISOString(),
+        startDate: parseDateToISO(data.startDate),
+        dueDate: parseDateToISO(data.dueDate),
         status: "PENDING",
       };
 
       await api.post("/orders", payload);
       setIsModalOpen(false);
-      reset({
-        orderNumber: `JO-2026-${Math.floor(100 + Math.random() * 900)}`,
-        clientName: "",
-        styleName: "",
-        quantity: 100,
-        fabricType: "100% Cotton Poplin",
-        consumptionPerPieceMeters: 1.5,
-        startDate: new Date().toISOString().split("T")[0],
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-      });
+      reset();
       fetchOrders();
     } catch (err: any) {
       console.error("Failed to create order:", err);
@@ -270,7 +270,7 @@ export default function JobOrdersPage() {
       setServerError(
         typeof apiMsg === "string"
           ? apiMsg
-          : "Failed to create job order. Please check inputs or inspect backend console.",
+          : "Failed to create job order. Please check inputs or inspect backend console."
       );
     }
   };
