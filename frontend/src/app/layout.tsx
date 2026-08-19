@@ -1,44 +1,54 @@
-// Purpose: Root App Router Layout, Meta Configuration & React Query Provider Envelope
+
+// Purpose: Root Layout wrapping all pages with Navbar and Sidebar
 // Path: frontend/src/app/layout.tsx
 
-import React from 'react';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+'use client';
+
+import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Navbar from '@/components/layout/Navbar';
+import Sidebar from '@/components/layout/Sidebar';
 import './globals.css';
-import Providers from '@/components/providers/Providers';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-export const metadata: Metadata = {
-  title: 'Garment ERP - Garment Manufacturing Management System',
-  description:
-    'Enterprise Cloud ERP for Garment Contractors, Fabric Tracking, Job Orders, and Piece-Rate Payroll',
-  keywords: [
-    'Garment Manufacturing',
-    'Textile ERP',
-    'Job Order Management',
-    'Piece-Rate Payroll',
-    'Fabric Tracking',
-  ],
-  authors: [{ name: 'Garment Engineering Team' }],
-};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Login ya Register page par Navbar/Sidebar nahi dikhega
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname?.includes('/login') || pathname?.includes('/register');
+
+  if (isAuthPage) {
+    return (
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    );
+  }
+
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
-      <body className="min-h-screen bg-background text-foreground antialiased custom-scrollbar">
-        <Providers>{children}</Providers>
+    <html lang="en">
+      <body>
+        <div className="flex min-h-screen flex-col bg-muted/10">
+          {/* Top Navbar */}
+          <Navbar onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar with all page links */}
+            <Sidebar 
+              isOpen={mobileMenuOpen} 
+              onClose={() => setMobileMenuOpen(false)} 
+            />
+
+            {/* Main Content Area (Yeh har page ka content yahan load karega) */}
+            <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+              {children}
+            </main>
+          </div>
+        </div>
       </body>
     </html>
   );
