@@ -1,266 +1,230 @@
-// Purpose: Factory Settings and System Configuration Page
+
+// Purpose: Factory Settings & Configurations with persistent localStorage saving
 // Path: frontend/src/app/settings/page.tsx
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import api from '@/lib/api';
-import {
-  Settings,
-  Building2,
-  Save,
-  CheckCircle2,
-  AlertTriangle,
-  Globe,
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Settings, Save, CheckCircle2 } from 'lucide-react';
 
-const settingsSchema = z.object({
-  unitName: z.string().min(2, 'Factory unit name is required'),
-  gstin: z.string().min(15, 'Valid 15-character GSTIN is required'),
-  address: z.string().min(5, 'Address is required'),
-  contactEmail: z.string().email('Valid email is required'),
-  phone: z.string().min(10, 'Valid phone number is required'),
-  currency: z.string().min(1, 'Currency preference is required'),
-  enableWhatsAppAlerts: z.boolean(),
-  autoScanDeduction: z.boolean(),
-});
+export default function FactorySettingsPage() {
+  const [isMounted, setIsMounted] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(false);
 
-type SettingsFormData = z.infer<typeof settingsSchema>;
+  // Form states
+  const [factoryName, setFactoryName] = useState('Apex Garments Unit #4');
+  const [gstin, setGstin] = useState('27AABCA1234F1Z9');
+  const [address, setAddress] = useState('Plot 42, MIDC Industrial Area, Electronic Zone, Bangalore - 560100');
+  const [email, setEmail] = useState('operations@apexgarments.in');
+  const [phone, setPhone] = useState('+91 98765 00000');
+  const [currency, setCurrency] = useState('Indian Rupee (INR ₹)');
+  const [whatsappAlerts, setWhatsappAlerts] = useState(true);
+  const [autoScan, setAutoScan] = useState(true);
 
-export default function SettingsPage() {
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [serverError, setServerError] = useState<string | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<SettingsFormData>({
-    resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      unitName: 'Apex Garments Unit #4',
-      gstin: '27AABCA1234F1Z9',
-      address: 'Plot 42, MIDC Industrial Area, Electronic Zone, Bangalore - 560100',
-      contactEmail: 'operations@apexgarments.in',
-      phone: '+91 98765 00000',
-      currency: 'INR (₹)',
-      enableWhatsAppAlerts: true,
-      autoScanDeduction: true,
-    },
-  });
-
+  // Load saved settings on mount
   useEffect(() => {
-    // Fetch settings from API if available
-    api
-      .get('/settings')
-      .then((res) => {
-        if (res.data) {
-          reset(res.data);
+    setIsMounted(true);
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('soms_factory_settings');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.factoryName) setFactoryName(data.factoryName);
+          if (data.gstin) setGstin(data.gstin);
+          if (data.address) setAddress(data.address);
+          if (data.email) setEmail(data.email);
+          if (data.phone) setPhone(data.phone);
+          if (data.currency) setCurrency(data.currency);
+          if (typeof data.whatsappAlerts === 'boolean') setWhatsappAlerts(data.whatsappAlerts);
+          if (typeof data.autoScan === 'boolean') setAutoScan(data.autoScan);
+        } catch (e) {
+          console.error('Failed to parse factory settings', e);
         }
-      })
-      .catch(() => {
-        console.log('Using default local settings configuration');
-      });
-  }, [reset]);
-
-  const onSubmit = async (data: SettingsFormData) => {
-    setServerError(null);
-    setSuccessMessage(null);
-    try {
-      await api.put('/settings', data);
-      setSuccessMessage('Factory settings updated successfully.');
-      setTimeout(() => setSuccessMessage(null), 4000);
-    } catch (err: any) {
-      console.error('Failed to update settings:', err);
-      // Simulate success for offline/sandbox mode
-      setSuccessMessage('Factory settings updated successfully.');
-      setTimeout(() => setSuccessMessage(null), 4000);
+      }
     }
+  }, []);
+
+  if (!isMounted) return null;
+
+  // Handle Save Settings
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    const settingsData = {
+      factoryName,
+      gstin,
+      address,
+      email,
+      phone,
+      currency,
+      whatsappAlerts,
+      autoScan
+    };
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('soms_factory_settings', JSON.stringify(settingsData));
+    }
+
+    setSuccessMsg(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      setSuccessMsg(false);
+    }, 3000);
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* Header Banner */}
-      <div className="flex items-center justify-between rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="space-y-6 p-6 max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center">
         <div>
-          <h1 className="flex items-center text-2xl font-bold tracking-tight text-foreground">
-            <Settings className="mr-2 h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center">
+            <Settings className="mr-2.5 h-6 w-6 text-primary" />
             Factory Settings & Configurations
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage your garment manufacturing plant profile, tax registrations, and operational defaults.
           </p>
         </div>
+        <button
+          type="submit"
+          form="settings-form"
+          className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors cursor-pointer"
+        >
+          <Save className="mr-2 h-4 w-4" /> Save Changes
+        </button>
       </div>
 
-      {successMessage && (
-        <div className="flex items-center space-x-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-600">
+      {/* Success Notification Banner */}
+      {successMsg && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-600 shadow-sm transition-all">
           <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-          <span className="text-sm font-medium">{successMessage}</span>
+          <span className="text-sm font-semibold">Factory settings updated and saved successfully!</span>
         </div>
       )}
 
-      {serverError && (
-        <div className="flex items-center space-x-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-destructive">
-          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-          <span className="text-sm font-medium">{serverError}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Plant Profile Section */}
-        <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="flex items-center border-b border-border pb-3 text-lg font-bold text-foreground">
-            <Building2 className="mr-2 h-5 w-5 text-primary" />
+      {/* Settings Form */}
+      <form id="settings-form" onSubmit={handleSave} className="space-y-6">
+        {/* Plant Profile & Tax Identity */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
             Plant Profile & Tax Identity
           </h2>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Factory Unit Name
               </label>
               <input
-                {...register('unitName')}
                 type="text"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                value={factoryName}
+                onChange={(e) => setFactoryName(e.target.value)}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                required
               />
-              {errors.unitName && (
-                <p className="mt-1 text-xs text-destructive">{errors.unitName.message}</p>
-              )}
             </div>
-
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 GSTIN Number
               </label>
               <input
-                {...register('gstin')}
                 type="text"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                value={gstin}
+                onChange={(e) => setGstin(e.target.value)}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                required
               />
-              {errors.gstin && (
-                <p className="mt-1 text-xs text-destructive">{errors.gstin.message}</p>
-              )}
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Registered Factory Address
             </label>
             <textarea
-              {...register('address')}
               rows={2}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              required
             />
-            {errors.address && (
-              <p className="mt-1 text-xs text-destructive">{errors.address.message}</p>
-            )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Contact Email
               </label>
               <input
-                {...register('contactEmail')}
                 type="email"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                required
               />
-              {errors.contactEmail && (
-                <p className="mt-1 text-xs text-destructive">{errors.contactEmail.message}</p>
-              )}
             </div>
-
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Phone Number
               </label>
               <input
-                {...register('phone')}
                 type="text"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                required
               />
-              {errors.phone && (
-                <p className="mt-1 text-xs text-destructive">{errors.phone.message}</p>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Operational Preferences Section */}
-        <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="flex items-center border-b border-border pb-3 text-lg font-bold text-foreground">
-            <Globe className="mr-2 h-5 w-5 text-primary" />
+        {/* System & Currency Defaults */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+          <h2 className="text-lg font-bold text-foreground border-b border-border pb-3">
             System & Currency Defaults
           </h2>
+
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-foreground">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
               Default Currency
             </label>
             <select
-              {...register('currency')}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:w-72"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
             >
-              <option value="INR (₹)">Indian Rupee (INR ₹)</option>
-              <option value="USD ($)">US Dollar (USD $)</option>
-              <option value="EUR (€)">Euro (EUR €)</option>
+              <option value="Indian Rupee (INR ₹)">Indian Rupee (INR ₹)</option>
+              <option value="US Dollar (USD $)">US Dollar (USD $)</option>
+              <option value="Euro (EUR €)">Euro (EUR €)</option>
             </select>
-            {errors.currency && (
-              <p className="mt-1 text-xs text-destructive">{errors.currency.message}</p>
-            )}
           </div>
 
           <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  WhatsApp Operational Alerts
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Send automated dispatch updates and low stock alerts via WhatsApp.
-                </p>
-              </div>
+            <label className="flex items-start gap-3 cursor-pointer">
               <input
-                {...register('enableWhatsAppAlerts')}
                 type="checkbox"
-                className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                checked={whatsappAlerts}
+                onChange={(e) => setWhatsappAlerts(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
               />
-            </div>
+              <div>
+                <span className="text-sm font-semibold text-foreground">WhatsApp Operational Alerts</span>
+                <p className="text-xs text-muted-foreground">Send automated dispatch updates and low stock alerts via WhatsApp.</p>
+              </div>
+            </label>
 
-            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  Auto-Scan Roll Deduction
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Automatically deduct fabric meterage from inventory upon bundle cutting scan.
-                </p>
-              </div>
+            <label className="flex items-start gap-3 cursor-pointer">
               <input
-                {...register('autoScanDeduction')}
                 type="checkbox"
-                className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                checked={autoScan}
+                onChange={(e) => setAutoScan(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
               />
-            </div>
+              <div>
+                <span className="text-sm font-semibold text-foreground">Auto-Scan Roll Deduction</span>
+                <p className="text-xs text-muted-foreground">Automatically deduct fabric meterage from inventory upon bundle cutting scan.</p>
+              </div>
+            </label>
           </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Saving Configurations...' : 'Save Factory Settings'}
-          </button>
         </div>
       </form>
     </div>
