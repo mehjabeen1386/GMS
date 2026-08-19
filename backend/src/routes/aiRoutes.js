@@ -3,11 +3,14 @@
 
 const express = require('express');
 const { getAiInsights } = require('../controllers/AiController');
-const { authenticate } = require('../middlewares/authenticate');
+
+// Agar authenticate middleware direct function export karta hai (module.exports = authenticate),
+// toh curly braces {} mat lagayein:
+const authenticate = require('../middlewares/authenticate'); 
 
 const router = express.Router();
 
-// Protected AI endpoint
+// Route define karein
 router.get('/insights', authenticate, getAiInsights);
 
 module.exports = router;

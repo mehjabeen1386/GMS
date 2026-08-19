@@ -4,6 +4,8 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const aiRoutes = require('./routes/aiRoutes'); // Import
+const aiEstimatorRoutes = require('./routes/aiEstimatorRoutes');
 
 const app = express();
 
@@ -19,6 +21,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiEstimatorRoutes);
 
 // Helper function to safely mount routes if their file exists
 const mountRoute = (path, routeFileName) => {
