@@ -1,31 +1,42 @@
 // Purpose: Multi-Tenant Contractor Registration Page with Zod Validation
 // Path: frontend/src/app/(auth)/register/page.tsx
 
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useAuthStore } from '@/store/authStore';
-import api from '@/lib/api';
-import { Factory, Lock, Mail, User, Building2, Phone, AlertCircle, ArrowRight } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useAuthStore } from "@/store/authStore";
+import api from "@/lib/api";
+import {
+  Factory,
+  Lock,
+  Mail,
+  User,
+  Building2,
+  Phone,
+  AlertCircle,
+  ArrowRight,
+} from "lucide-react";
 
 // Validation Schema for Enterprise Registration Input Fields
 const registerSchema = z
   .object({
-    name: z.string().min(2, 'Full name must be at least 2 characters'),
-    companyName: z.string().min(3, 'Company or workshop name must be at least 3 characters'),
-    email: z.string().email('Please enter a valid business email address'),
-    phone: z.string().min(10, 'Please enter a valid 10-digit mobile number'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    name: z.string().min(2, "Full name must be at least 2 characters"),
+    companyName: z
+      .string()
+      .min(3, "Company or workshop name must be at least 3 characters"),
+    email: z.string().email("Please enter a valid business email address"),
+    phone: z.string().min(10, "Please enter a valid 10-digit mobile number"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
   });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -43,12 +54,12 @@ export default function RegisterPage() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
-      companyName: '',
-      email: '',
-      phone: '',
-      password: '',
-      confirmPassword: '',
+      name: "",
+      companyName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -56,13 +67,13 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setServerError(null);
     try {
-      const response = await api.post('/v1/auth/register', {
-        name: data.name,
+      const response = await api.post("/auth/register", {
+      name: data.name,
         companyName: data.companyName,
         email: data.email,
         phone: data.phone,
         password: data.password,
-        role: 'CONTRACTOR',
+        role: "CONTRACTOR",
       });
       const { user, token } = response.data.data || response.data;
 
@@ -70,15 +81,22 @@ export default function RegisterPage() {
       setAuth(user, token);
 
       // Redirect to dashboard upon successful workspace provisioning
-      router.push('/dashboard');
     } catch (err: any) {
-      console.error('Registration error response:', err);
-      const errorMessage =
-        err.response?.data?.message ||
-        'Registration failed. This email or company domain may already be registered.';
+      console.error("Registration error response:", err);
+
+      let errorMessage = "Registration failed. Please try again.";
+
+      if (!err.response) {
+        errorMessage =
+          "Unable to connect to the server. Please check if the backend is running.";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response.status === 400 || err.response.status === 409) {
+        errorMessage =
+          "This email or company domain may already be registered.";
+      }
+
       setServerError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -94,7 +112,8 @@ export default function RegisterPage() {
           Register Contractor Workspace
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          Provision a dedicated multi-tenant environment for your garment manufacturing unit
+          Provision a dedicated multi-tenant environment for your garment
+          manufacturing unit
         </p>
       </div>
 
@@ -119,14 +138,16 @@ export default function RegisterPage() {
                   <User className="h-4 w-4" />
                 </div>
                 <input
-                  {...register('name')}
+                  {...register("name")}
                   type="text"
                   placeholder="Rajesh Kumar"
                   className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
               {errors.name && (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.name.message}</p>
+                <p className="mt-1 text-xs font-medium text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -140,7 +161,7 @@ export default function RegisterPage() {
                   <Building2 className="h-4 w-4" />
                 </div>
                 <input
-                  {...register('companyName')}
+                  {...register("companyName")}
                   type="text"
                   placeholder="Apex Apparel Industries"
                   className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -164,7 +185,7 @@ export default function RegisterPage() {
                     <Mail className="h-4 w-4" />
                   </div>
                   <input
-                    {...register('email')}
+                    {...register("email")}
                     type="email"
                     placeholder="admin@apexapparel.com"
                     className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -186,7 +207,7 @@ export default function RegisterPage() {
                     <Phone className="h-4 w-4" />
                   </div>
                   <input
-                    {...register('phone')}
+                    {...register("phone")}
                     type="tel"
                     placeholder="9876543210"
                     className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -211,7 +232,7 @@ export default function RegisterPage() {
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
-                    {...register('password')}
+                    {...register("password")}
                     type="password"
                     placeholder="••••••••"
                     className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -233,7 +254,7 @@ export default function RegisterPage() {
                     <Lock className="h-4 w-4" />
                   </div>
                   <input
-                    {...register('confirmPassword')}
+                    {...register("confirmPassword")}
                     type="password"
                     placeholder="••••••••"
                     className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -272,8 +293,11 @@ export default function RegisterPage() {
           {/* Quick Login Link */}
           <div className="mt-6 border-t border-border pt-4 text-center">
             <p className="text-xs text-muted-foreground">
-              Already have an enterprise contractor account?{' '}
-              <Link href="/login" className="font-semibold text-primary hover:underline">
+              Already have an enterprise contractor account?{" "}
+              <Link
+                href="/login"
+                className="font-semibold text-primary hover:underline"
+              >
                 Sign In
               </Link>
             </p>
