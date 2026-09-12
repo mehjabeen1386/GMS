@@ -46,8 +46,9 @@ src/
 │   │   ├── page.tsx               # Main Inventory Ledger Page
 │   │   ├── AIInventoryEstimator.tsx # FabricMind AI Oracle Component
 │   │   ├── AIOrderSimulator.tsx     # Order Feasibility Simulator Component
-│   │   └── AIWorkerProductivity.tsx # Worker Productivity & Performance Component
+│   │   └── AIWorkerProductivity.tsx # Worker Productivity Component
 │   └── layout.tsx                 # Root Layout & Providers
+
 
 Usage
 1) ​Navigate to the Inventory Dashboard to view active fabric rolls and key performance indicators.
