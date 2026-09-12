@@ -40,7 +40,7 @@ Ensure you have Node.js (version 18.x or higher) installed on your system.
 6) Open http://localhost:3000 in your browser to view the application.
 
 Project Structure
-'''text
+```text
 src/
 ├── app/
 │   ├── inventory/
@@ -49,7 +49,6 @@ src/
 │   │   ├── AIOrderSimulator.tsx     # Order Feasibility Simulator Component
 │   │   └── AIWorkerProductivity.tsx # Worker Productivity Component
 │   └── layout.tsx                 # Root Layout & Providers
-
 
 
 Usage
