@@ -1,83 +1,408 @@
-/* Purpose: Global CSS Stylesheet & CSS Variable Theme Tokens */
-/* Path: frontend/src/app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@layer base {
-  :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 200 98% 39%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 200 98% 39%;
-    --radius: 0.5rem;
+/* ========================================================= 
+   Global CSS Stylesheet & CSS Variable Theme Tokens 
+   Path: frontend/src/app/globals.css 
+   ========================================================= */ 
+
+@tailwind base; 
+@tailwind components; 
+@tailwind utilities; 
+
+/* ========================================================= 
+   DEEP NAVY & ELECTRIC ROSE/EMERALD DESIGN SYSTEM
+   ========================================================= */ 
+
+@layer base { 
+  :root { 
+    /* Core Deep Navy & Midnight Backgrounds */
+    --background: 222 47% 7%; 
+    --foreground: 210 40% 98%; 
+
+    --card: 222 40% 10%; 
+    --card-foreground: 210 40% 98%; 
+
+    --popover: 222 40% 10%; 
+    --popover-foreground: 210 40% 98%; 
+
+    /* Primary Accent: Electric Dark Pink / Rose Magenta */
+    --primary: 336 84% 57%; 
+    --primary-foreground: 210 40% 98%; 
+
+    --secondary: 217 33% 15%; 
+    --secondary-foreground: 210 40% 98%; 
+
+    --muted: 217 33% 15%; 
+    --muted-foreground: 215 20.2% 65.1%; 
+
+    --accent: 336 84% 20%; 
+    --accent-foreground: 210 40% 98%; 
+
+    --destructive: 350 89% 60%; 
+    --destructive-foreground: 210 40% 98%; 
+
+    --border: 217 33% 18%; 
+    --input: 217 33% 18%; 
+
+    --ring: 336 84% 57%; 
+    --radius: 0.85rem; 
+
+    /* Custom Theme Tokens */
+    --garment-ink: #f8fafc;
+    --garment-muted: #94a3b8;
+    
+    /* Colors requested */
+    --garment-navy: #0b1329;
+    --garment-pink: #e11d48;
+    --garment-pink-dark: #be123c;
+    --garment-green: #10b981;
+    --garment-purple: #8b5cf6;
+    --garment-red: #f43f5e;
+
+    --garment-primary: var(--garment-pink);
+    --garment-primary-glow: rgba(225, 29, 72, 0.35);
+    --garment-surface: rgba(15, 23, 42, 0.75);
+    --garment-soft: #0b1120;
+    --garment-border: rgba(225, 29, 72, 0.18);
+    
+    --garment-shadow: 
+      0 20px 40px -15px rgba(0, 0, 0, 0.7),
+      0 0 25px -5px rgba(225, 29, 72, 0.12);
+  } 
+
+  .dark { 
+    --background: 222 47% 5%; 
+    --card: 222 47% 8%; 
+    --border: 217 33% 15%; 
   }
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 199 89% 48%;
-  }
+} 
+
+/* ========================================================= 
+   ATMOSPHERIC GRADIENT BACKGROUND & ANIMATIONS
+   ========================================================= */ 
+
+@layer base { 
+  * { 
+    @apply border-border; 
+  } 
+
+  body { 
+    @apply bg-background text-foreground font-sans antialiased selection:bg-rose-600 selection:text-white; 
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    color: var(--garment-ink); 
+    background-color: #070d1d;
+    
+    /* Mesh Gradients blending Navy Blue, Purple, Dark Pink, and Emerald */
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(225, 29, 72, 0.18) 0px, transparent 45%),
+      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 45%),
+      radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(11, 19, 41, 0.9) 0px, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  } 
+} 
+
+/* ========================================================= 
+   GLASSMORPHISM CARDS WITH NEON BORDER HIGHLIGHTS
+   ========================================================= */ 
+
+.card, 
+.dashboard-card, 
+.panel, 
+.modal-content, 
+.table-container, 
+.sidebar { 
+  position: relative;
+  border: 1px solid var(--garment-border); 
+  box-shadow: var(--garment-shadow); 
+  background: var(--garment-surface); 
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+} 
+
+.card:hover,
+.dashboard-card:hover {
+  border-color: rgba(225, 29, 72, 0.4);
+  box-shadow: 
+    0 20px 35px -10px rgba(0, 0, 0, 0.6),
+    0 0 20px 0 rgba(225, 29, 72, 0.25);
+  transform: translateY(-2px);
 }
-@layer base {
-  * {
-    @apply border-border;
-  }   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+
+/* ========================================================= 
+   GLOWING SHIMMER BUTTONS (DARK PINK & PURPLE GRADIENT)
+   ========================================================= */ 
+
+button.primary, 
+.btn-primary, 
+button[type="submit"] { 
+  position: relative;
+  border: 0; 
+  color: #ffffff; 
+  font-weight: 600;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #e11d48 0%, #8b5cf6 100%); 
+  box-shadow: 0 4px 20px 0 rgba(225, 29, 72, 0.45); 
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+} 
+
+/* Shimmer Light Effect */
+button.primary::after, 
+.btn-primary::after, 
+button[type="submit"]::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 70%
+  );
+  transform: rotate(30deg) translateX(-100%);
+  transition: transform 0.6s ease;
 }
-/* Custom Operations Utility Classes */
-@layer utilities {
-  /* Industrial Status Badges */
-  .badge-pending {
-    @apply bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800;
-  }
-  .badge-in-progress {
-    @apply bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800;
-  }
-  .badge-completed {
-    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 dark:border  }
-  .badge-cancelled {
-    @apply bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border-red-200 dark:border-red-800;
-  }
-  /* Custom Clean Scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;     height: 6px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
-  }
+
+button.primary:hover::after, 
+.btn-primary:hover::after, 
+button[type="submit"]:hover::after {
+  transform: rotate(30deg) translateX(100%);
+}
+
+button.primary:hover, 
+.btn-primary:hover, 
+button[type="submit"]:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 25px 0 rgba(225, 29, 72, 0.65); 
+  filter: brightness(1.1); 
+} 
+
+button.primary:active, 
+.btn-primary:active, 
+button[type="submit"]:active { 
+  transform: translateY(0); 
+}
+
+/* ========================================================= 
+   FORM INPUTS & GLOW FOCUS
+   ========================================================= */ 
+
+input, select, textarea {
+  transition: all 0.2s ease;
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  color: #ffffff;
+}
+
+input:focus, 
+select:focus, 
+textarea:focus { 
+  outline: none; 
+  border-color: #e11d48 !important; 
+  box-shadow: 0 0 15px 0 rgba(225, 29, 72, 0.35);
+} 
+
+/* ========================================================= 
+   COLOR-CODED VIBRANT INDUSTRIAL BADGES
+   ========================================================= */ 
+
+.badge-success, .status-completed { 
+  color: #10b981; 
+  background: rgba(16, 185, 129, 0.12); 
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+} 
+
+.badge-warning, .status-in-progress { 
+  color: #8b5cf6; 
+  background: rgba(139, 92, 246, 0.12); 
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+} 
+
+.badge-danger, .status-pending { 
+  color: #f43f5e; 
+  background: rgba(244, 63, 94, 0.12); 
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.15);
+} 
+
+@layer utilities { 
+  .badge-pending { 
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+           bg-rose-500/10 text-rose-400 border border-rose-500/30 backdrop-blur-sm; 
+  } 
+ 
+  .badge-in-progress { 
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+           bg-purple-500/10 text-purple-400 border border-purple-500/30 backdrop-blur-sm; 
+  } 
+ 
+  .badge-completed { 
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+           bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 backdrop-blur-sm; 
+  } 
+ 
+  .badge-cancelled { 
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+           bg-red-500/10 text-red-400 border border-red-500/30 backdrop-blur-sm; 
+  } 
+
+  /* Neon Scrollbar */ 
+  .custom-scrollbar::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+  } 
+ 
+  .custom-scrollbar::-webkit-scrollbar-track { 
+    background: rgba(11, 19, 41, 0.5); 
+  } 
+ 
+  .custom-scrollbar::-webkit-scrollbar-thumb { 
+    @apply bg-rose-900/50 rounded-full hover:bg-rose-600 transition-colors; 
+  } 
+} 
+
+/* ========================================================= 
+   COPILOT & KPI CARDS 
+   ========================================================= */ 
+
+.copilot-card { 
+  position: relative;
+  margin: 24px 0; 
+  padding: 28px; 
+  border: 1px solid rgba(225, 29, 72, 0.3); 
+  border-radius: 24px; 
+  color: var(--garment-ink); 
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 15, 35, 0.8) 100%); 
+  backdrop-filter: blur(16px);
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 0 rgba(225, 29, 72, 0.2);
+  overflow: hidden;
+} 
+
+.copilot-card__header, 
+.copilot-kpis, 
+.copilot-grid, 
+.worker-row, 
+.action-row { 
+  display: flex; 
+  gap: 18px; 
+} 
+
+.copilot-card__header { 
+  justify-content: space-between; 
+  align-items: flex-start; 
+} 
+
+.copilot-eyebrow { 
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px; 
+  color: #f43f5e; 
+  font-size: 11px; 
+  font-weight: 800; 
+  letter-spacing: 0.15em; 
+  text-transform: uppercase;
+} 
+
+.copilot-button { 
+  border: 0; 
+  border-radius: 12px; 
+  padding: 12px 20px; 
+  color: #ffffff; 
+  font-weight: 600;
+  background: linear-gradient(135deg, #e11d48 0%, #8b5cf6 100%); 
+  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+} 
+
+.copilot-button:hover { 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.6);
+} 
+
+.copilot-kpis { 
+  margin: 24px 0 20px; 
+  flex-wrap: wrap; 
+} 
+
+.copilot-kpis > div { 
+  flex: 1 1 130px; 
+  padding: 16px; 
+  border-radius: 16px; 
+  border: 1px solid rgba(225, 29, 72, 0.15);
+  background: rgba(11, 19, 41, 0.6); 
+  backdrop-filter: blur(8px);
+} 
+
+.copilot-kpis strong { 
+  display: block; 
+  margin-top: 6px; 
+  font-size: 22px; 
+  font-weight: 800;
+  letter-spacing: -0.02em;
+} 
+
+/* Indicator Colors */
+.risk-low { color: #10b981; } 
+.risk-medium { color: #8b5cf6; } 
+.risk-high { color: #f43f5e; } 
+
+/* Progress Bar */
+.copilot-meter { 
+  height: 10px; 
+  margin: 16px 0 10px; 
+  overflow: hidden; 
+  border-radius: 99px; 
+  background: rgba(255, 255, 255, 0.08); 
+} 
+
+.copilot-meter span { 
+  display: block; 
+  height: 100%; 
+  border-radius: inherit; 
+  background: linear-gradient(90deg, #10b981 0%, #8b5cf6 50%, #e11d48 100%); 
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+} 
+
+.action-row { 
+  align-items: flex-start; 
+  padding: 16px 0; 
+  border-bottom: 1px solid var(--garment-border); 
+} 
+
+.action-number { 
+  display: grid; 
+  width: 32px; 
+  height: 32px; 
+  flex: 0 0 32px; 
+  place-items: center; 
+  border-radius: 10px; 
+  color: #ffffff; 
+  background: linear-gradient(135deg, #e11d48, #8b5cf6); 
+  font-weight: 800; 
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4);
+} 
+
+@media (max-width: 640px) { 
+  .copilot-card { 
+    padding: 20px; 
+  } 
+  .copilot-card__header { 
+    flex-direction: column; 
+    gap: 12px;
+  } 
+  .copilot-button { 
+    width: 100%;
+    margin-top: 8px; 
+  } 
 }
