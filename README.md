@@ -47,18 +47,19 @@ Run the development server:
    npm run dev
    Open http://localhost:3000 in your browser to launch the system.
 
-📁 Project Structure
-   src/
-└── app/
-    ├── login/            # Sign in & Authentication Page
-    ├── dashboard/        # Operational Overview & AI Advisor
-    ├── buyers/           # Client Directory & Accounts Receivable
-    ├── inventory/        # Fabric Roll Ledger & AI Estimator
-    ├── orders/           # Job Orders Management & Creation
-    ├── production/       # Real-time Production Floor Scan Monitor
-    ├── reports/          # Factory Analytics & CSV Data Export
-    ├── workers/          # Workforce Directory & Piece-Rate Balances
-    └── settings/         # Factory Configuration & Plant Identity
+## 📁 Project Structure
+
+* **src/**
+  * **app/**
+    * **login/** — Sign in & Authentication Page
+    * **dashboard/** — Operational Overview & AI Advisor
+    * **buyers/** — Client Directory & Accounts Receivable
+    * **inventory/** — Fabric Roll Ledger & AI Estimator
+    * **orders/** — Job Orders Management & Creation
+    * **production/** — Real-time Production Floor Scan Monitor
+    * **reports/** — Factory Analytics & CSV Data Export
+    * **workers/** — Workforce Directory & Piece-Rate Balances
+    * **settings/** — Factory Configuration & Plant Identity
 
 💡 Usage Workflow
    Sign In: Log in via the entry portal using contractor credentials.
