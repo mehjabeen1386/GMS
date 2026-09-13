@@ -48,8 +48,6 @@ Run the development server:
    Open http://localhost:3000 in your browser to launch the system.
 
 ## 📁 Project Structure
-
-## 📁 Project Structure
 <pre><code>.
 ├── src/
 │   └── app/
