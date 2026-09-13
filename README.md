@@ -1,58 +1,69 @@
-# GMS - Garment Inventory & AI Analytics System
-A modern, high-performance web application designed for garment contractors and textile warehouses to manage fabric rolls, track stock meters, and leverage built-in AI modules for smart resource allocation and labor efficiency.
+# AI Powered Garments Contractor and Worker Management System
+
+An enterprise-grade, high-performance web application designed for garment contractors, factory managers, and textile warehouses. This system unifies end-to-end garment operations—from buyer tracking and inventory ledgers to real-time piece-rate labor tracking, automated payroll calculations, and AI-driven stock optimization.
+
+---
 
 ## 🚀 Key Features
-**Fabric Roll Ledger:** Comprehensive tracking of active and deleted rolls, remaining meters, and category details with robust validation.
 
-**FabricMind AI Oracle:** Futuristic autonomous stock auditing tool featuring live health scoring, risk scanners, and automated waste reduction insights.
+* **Dashboard & AI Smart Operations Advisor:** Live operational metrics overview featuring automated bottleneck risk monitoring, AI efficiency scoring, and scrap reduction recommendations.
+* **Brand & Clients (Buyers) Management:** Track buyer contacts, total active purchase orders (POs), lifetime order volumes, and outstanding accounts receivable balances.
+* **Fabric Inventory Ledger:** Real-time stock meter tracking, low-stock threshold alerts (< 20m), trash archive management, and integrated AI fabric utilization estimators.
+* **Job Orders Management:** Create and track production job orders with target piece quantities, garment style specifications, per-piece fabric consumption, and target delivery dates.
+* **Production Floor Monitor:** Live assembly line tracking for completed vs. remaining order pieces, total piece-rate earnings, and manual or barcode scan logs.
+* **Workforce & Tailor Directory:** Centralized labor management tracking skill categories (Tailor, Helper, Collar Specialist), lifetime production output, and unpaid piece-rate balance ledgers.
+* **Factory Reports & Analytics:** Comprehensive output summary, disbursed payroll tracking, active scan logs, and CSV data export capabilities.
+* **Factory Settings & Configuration:** Custom plant profile setup (GSTIN, factory identity), base currency configuration, and auto-scan roll reduction toggles.
 
-**Order Feasibility Simulator:** Instantly test client order demands against real-time warehouse stock vectors with optimal roll allocation suggestions.
-
-**Worker Productivity & Performance Prediction:** Floor labor efficiency tracker designed to predict shift bottlenecks and optimize cutting outputs.
+---
 
 ## 🛠️ Tech Stack
-**Framework/Library:** React / Next.js (App Router)
-**Language:** TypeScript
-**Styling:** Tailwind CSS
-**Icons:** Lucide React
-**Validation:** Zod
+
+* **Framework:** React / Next.js (App Router)
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS
+* **Icons:** Lucide React
+* **Validation:** Zod
+
+---
 
 ## 📦 Getting Started
-Follow these instructions to get a local copy up and running on your machine.
 
 ### Prerequisites
-Ensure you have Node.js (version 18.x or higher) installed on your system.
+
+Ensure you have Node.js (v18.x or higher) installed on your system.
 
 ### Installation & Setup
-1. **Clone the repository**
-   git clone [https://github.com/your-username/garment-inventory-system.git](https://github.com/your-username/garment-inventory-system.git)
-   cd garment-inventory-system
 
-1) Navigate to the frontend directory (if structured inside a frontend folder)
-   cd frontend
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/mehjabeen1386/GMS.git](https://github.com/mehjabeen1386/GMS.git)
+   cd GMS
 
-2) Install dependencies
+Install dependencies:
    npm install
 
-4) Run the development server
+Run the development server:
    npm run dev
-   
-6) Open http://localhost:3000 in your browser to view the application.
+   Open http://localhost:3000 in your browser to launch the system.
 
-Project Structure
-```text
-src/
-├── app/
-│   ├── inventory/
-│   │   ├── page.tsx               # Main Inventory Ledger Page
-│   │   ├── AIInventoryEstimator.tsx # FabricMind AI Oracle Component
-│   │   ├── AIOrderSimulator.tsx     # Order Feasibility Simulator Component
-│   │   └── AIWorkerProductivity.tsx # Worker Productivity Component
-│   └── layout.tsx                 # Root Layout & Providers
+📁 Project Structure
+   src/
+└── app/
+    ├── login/            # Sign in & Authentication Page
+    ├── dashboard/        # Operational Overview & AI Advisor
+    ├── buyers/           # Client Directory & Accounts Receivable
+    ├── inventory/        # Fabric Roll Ledger & AI Estimator
+    ├── orders/           # Job Orders Management & Creation
+    ├── production/       # Real-time Production Floor Scan Monitor
+    ├── reports/          # Factory Analytics & CSV Data Export
+    ├── workers/          # Workforce Directory & Piece-Rate Balances
+    └── settings/         # Factory Configuration & Plant Identity
 
-
-Usage
-1) ​Navigate to the Inventory Dashboard to view active fabric rolls and key performance indicators.
-2) ​Use the AI Oracle widget for automated stock health audits and waste reduction insights.
-3) ​Test custom order lengths in the Order Feasibility Simulator to instantly determine roll allocation plans.
-4) ​Monitor floor performance metrics via the Worker Productivity module.
+💡 Usage Workflow
+   Sign In: Log in via the entry portal using contractor credentials.
+   Configure Plant Profile: Set up factory unit name, GSTIN, registered address, and default currency in Settings.
+   Manage Clients: Add new client profiles and review active purchase orders in Buyers.
+   Log Fabric Stock: Record incoming fabric rolls in Inventory and leverage the AI estimator for resource planning.
+   Issue Job Orders: Create production job orders under Orders detailing style, target pieces, and fabric requirements.
+   Monitor Floor Operations: Log live bundle scans under Production to automatically update worker piece-rate balances in Workers and generate operational logs in Reports.
