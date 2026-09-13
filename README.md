@@ -49,6 +49,8 @@ Run the development server:
 
 ## 📁 Project Structure
 
+## 📁 Project Structure
+<pre><code>.
 ├── src/
 │   └── app/
 │       ├── login/        # Sign in & Authentication Page
@@ -59,7 +61,7 @@ Run the development server:
 │       ├── production/   # Real-time Production Floor Scan Monitor
 │       ├── reports/      # Factory Analytics & CSV Data Export
 │       ├── workers/      # Workforce Directory & Piece-Rate Balances
-│       └── settings/     # Factory Configuration & Plant Identity
+│       └── settings/     # Factory Configuration & Plant Identity</code></pre>
 
 💡 Usage Workflow
    Sign In: Log in via the entry portal using contractor credentials.
