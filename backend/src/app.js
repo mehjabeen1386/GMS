@@ -10,9 +10,28 @@ const config = require('./config/environment');
 
 const app = express();
 
+const configuredCorsOrigins = String(config.cors.origin)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const isAllowedCorsOrigin = (origin) => {
+  if (!origin || configuredCorsOrigins.includes('*') || configuredCorsOrigins.includes(origin)) {
+    return true;
+  }
+
+  return /^https:\/\/garments-erp-frontend(?:-[a-z0-9]+)-mehjabeen1386\.vercel\.app$/i.test(origin);
+};
+
 // 1. Enable CORS for the configured frontend
 app.use(cors({
-  origin: config.cors.origin,
+  origin: (origin, callback) => {
+    if (isAllowedCorsOrigin(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS origin not allowed: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
