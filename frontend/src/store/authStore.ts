@@ -11,6 +11,8 @@ export interface UserProfile {
   role: 'CONTRACTOR' | 'SUPER_ADMIN' | 'WORKER';
   tenantId?: string;
   phone?: string;
+  fullName?: string;
+  username?: string;
 }
 
 interface AuthState {

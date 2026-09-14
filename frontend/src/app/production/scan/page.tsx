@@ -3,7 +3,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,7 +46,7 @@ const scanLogSchema = z.object({
 
 type ScanLogFormData = z.infer<typeof scanLogSchema>;
 
-export default function QRScannerPage() {
+function QRScannerForm() {
   const searchParams = useSearchParams();
   const initialBundleCode = searchParams?.get('bundle') || '';
 
@@ -375,5 +375,19 @@ export default function QRScannerPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function QRScannerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      }
+    >
+      <QRScannerForm />
+    </Suspense>
   );
 }

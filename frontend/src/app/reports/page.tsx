@@ -76,7 +76,7 @@ export default function ReportsPage() {
     );
   }
 
-  const matchesTimeFilter = (dateStr: string) => {
+  const matchesTimeFilter = (dateStr?: string) => {
     if (!dateStr) return false;
     if (timeFilter.includes('July 2026')) {
       return dateStr.startsWith('2026-07');

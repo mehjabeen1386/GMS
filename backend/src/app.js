@@ -47,7 +47,6 @@ mountRoute('/api/v1/workers', 'workerRoutes');
 
 // Mount Inventory & Fabric routes
 mountRoute('/api/v1/inventory', 'inventoryRoutes');
-mountRoute('/api/v1/inventory', 'fabricRoutes');
 
 // Mount Dashboard / Reports routes
 // mountRoute('/api/v1/reports', 'dashboardRoutes');
