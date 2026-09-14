@@ -68,3 +68,11 @@ Run the development server:
    Log Fabric Stock: Record incoming fabric rolls in Inventory and leverage the AI estimator for resource planning.
    Issue Job Orders: Create production job orders under Orders detailing style, target pieces, and fabric requirements.
    Monitor Floor Operations: Log live bundle scans under Production to automatically update worker piece-rate balances in Workers and generate operational logs in Reports.
+
+License
+
+​Copyright © 2026 AI Powered Garments Contractor and Worker Management System (GMS). 
+
+All rights reserved.
+
+This repository is shared for portfolio and demonstration purposes only. Unauthorized copying, modification, distribution, or reuse of this code is strictly prohibited.
