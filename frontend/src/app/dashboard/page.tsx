@@ -17,60 +17,57 @@ import Link from 'next/link';
 import Image from 'next/image';
 import iconImage from '../icon.png';
 import AIAdvisorWidget from './AIAdvisorWidget';
+import api from '@/lib/api';
 
 export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
-  const [workersCount, setWorkersCount] = useState(48);
-  const [totalUnpaid, setTotalUnpaid] = useState(184500);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+  const [workersCount, setWorkersCount] = useState(0);
+  const [fabricInStock, setFabricInStock] = useState(0);
+  const [totalUnpaid, setTotalUnpaid] = useState(0);
 
-  const loadDashboardData = () => {
-    if (typeof window !== 'undefined') {
-      const keys = [
-        'soms_tailors',
-        'tailors',
-        'workers',
-        'workforce',
-        'soms_workforce'
-      ];
+  const loadDashboardData = async () => {
+    const [ordersResult, workersResult, inventoryResult] = await Promise.allSettled([
+      api.get('/orders?limit=1000'),
+      api.get('/workers?limit=1000'),
+      api.get('/inventory/rolls'),
+    ]);
 
-      let foundWorkers: any[] = [];
+    if (ordersResult.status === 'fulfilled') {
+      const responseData = ordersResult.value.data?.data ?? ordersResult.value.data;
+      const orders = Array.isArray(responseData)
+        ? responseData
+        : responseData?.orders || responseData?.items || [];
+      setActiveOrdersCount(
+        orders.filter((order: any) => !['COMPLETED', 'CANCELLED'].includes(order.status)).length,
+      );
+    }
 
-      for (const key of keys) {
-        const data = localStorage.getItem(key);
+    if (workersResult.status === 'fulfilled') {
+      const responseData = workersResult.value.data?.data ?? workersResult.value.data;
+      const workers = Array.isArray(responseData)
+        ? responseData
+        : responseData?.workers || responseData?.items || [];
+      const activeWorkers = workers.filter(
+        (worker: any) => worker.status === undefined || worker.status === 'ACTIVE',
+      );
+      setWorkersCount(activeWorkers.length);
+      setTotalUnpaid(
+        activeWorkers.reduce((total: number, worker: any) => {
+          const amount = worker.unpaidBalance ?? worker.pendingPayout ?? worker.balance ?? 0;
+          return total + (Number(String(amount).replace(/[^0-9.-]+/g, '')) || 0);
+        }, 0),
+      );
+    }
 
-        if (data) {
-          try {
-            const parsed = JSON.parse(data);
-
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              foundWorkers = parsed;
-              break;
-            }
-          } catch (e) {}
-        }
-      }
-
-      if (foundWorkers.length > 0) {
-        setWorkersCount(foundWorkers.length);
-
-        const calculatedUnpaid = foundWorkers.reduce((acc, curr) => {
-          const bal =
-            Number(
-              String(
-                curr.unpaidBalance ||
-                  curr.balance ||
-                  curr.salary ||
-                  '0'
-              ).replace(/[^0-9.-]+/g, '')
-            ) || 0;
-
-          return acc + bal;
-        }, 0);
-
-        if (calculatedUnpaid > 0) {
-          setTotalUnpaid(calculatedUnpaid);
-        }
-      }
+    if (inventoryResult.status === 'fulfilled') {
+      const responseData = inventoryResult.value.data?.data ?? inventoryResult.value.data;
+      const rolls = Array.isArray(responseData) ? responseData : [];
+      setFabricInStock(
+        rolls
+          .filter((roll: any) => !roll.isDeleted)
+          .reduce((total: number, roll: any) => total + (Number(roll.remainingMeters) || 0), 0),
+      );
     }
   };
 
@@ -128,7 +125,7 @@ export default function DashboardPage() {
           </div>
 
           <h3 className="text-3xl font-bold text-foreground mt-2">
-            12
+            {activeOrdersCount}
           </h3>
 
           <p className="text-xs text-emerald-600 font-medium mt-1">
@@ -164,7 +161,7 @@ export default function DashboardPage() {
           </div>
 
           <h3 className="text-3xl font-bold text-foreground mt-2">
-            3,450 m
+            {fabricInStock.toLocaleString('en-IN')} m
           </h3>
 
           <p className="text-xs text-muted-foreground mt-1">
