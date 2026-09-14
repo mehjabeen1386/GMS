@@ -21,6 +21,12 @@ const DUMMY_OBJECT_ID = new mongoose.Types.ObjectId().toString();
 class OrderService {
   async createOrder(orderData, contractorId, ipAddress = '') {
     const orderNumber = orderData.orderNumber || orderData.jobOrderNumber;
+    const quantity = Number(orderData.quantity);
+    const consumptionPerPieceMeters = Number(
+      orderData.fabricDetails?.consumptionPerPieceMeters ??
+        orderData.consumptionPerPieceMeters ??
+        0
+    );
 
     const existingOrder = await OrderRepository.findByOrderNumber(orderNumber, contractorId);
     if (existingOrder) {
@@ -40,6 +46,7 @@ class OrderService {
     const payload = {
       ...orderData,
       orderNumber,
+      quantity,
       garmentType: orderData.styleName || orderData.garmentStyle || orderData.style || 'Garment Item',
       styleName: orderData.styleName || orderData.garmentStyle || orderData.style || 'Garment Item',
       client: orderData.clientName || orderData.client || 'N/A',
@@ -51,6 +58,12 @@ class OrderService {
       clothId: orderData.clothId || DUMMY_OBJECT_ID,
       workshopId: orderData.workshopId || DUMMY_OBJECT_ID,
       contractorId: contractorId || DUMMY_OBJECT_ID
+    };
+
+    payload.fabricDetails = {
+      ...payload.fabricDetails,
+      consumptionPerPieceMeters,
+      totalRequiredMeters: quantity * consumptionPerPieceMeters,
     };
 
     const order = await OrderRepository.create(payload);

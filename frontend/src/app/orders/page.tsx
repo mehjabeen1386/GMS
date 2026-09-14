@@ -189,9 +189,10 @@ export default function JobOrdersPage() {
     setIsLoading(true);
     try {
       const response = await api.get("/orders");
-      const rawData =
-        response.data?.data || response.data?.orders || response.data;
-      const list = Array.isArray(rawData) ? rawData : rawData?.items || [];
+      const responseData = response.data?.data ?? response.data;
+      const list = Array.isArray(responseData)
+        ? responseData
+        : responseData?.orders || responseData?.items || [];
 
       const formattedOrders: JobOrder[] = list.map((item: any) => ({
         id: item._id || item.id || `ord-${Math.random()}`,
@@ -260,10 +261,27 @@ export default function JobOrdersPage() {
         status: "PENDING",
       };
 
-      await api.post("/orders", payload);
+      const response = await api.post("/orders", payload);
       setIsModalOpen(false);
       reset();
-      fetchOrders();
+      const createdOrder = response.data?.data;
+      if (createdOrder?._id || createdOrder?.id) {
+        setOrders((currentOrders) => [
+          {
+            id: createdOrder._id || createdOrder.id,
+            orderNumber: createdOrder.orderNumber,
+            clientName: createdOrder.clientName,
+            styleName: createdOrder.styleName,
+            quantity: createdOrder.quantity,
+            completedQuantity: createdOrder.completedQuantity || 0,
+            status: createdOrder.status || "PENDING",
+            startDate: String(createdOrder.startDate).split("T")[0],
+            dueDate: String(createdOrder.dueDate).split("T")[0],
+          },
+          ...currentOrders,
+        ]);
+      }
+      await fetchOrders();
     } catch (err: any) {
       console.error("Failed to create order:", err);
       const apiMsg = err.response?.data?.message || err.response?.data?.error;
