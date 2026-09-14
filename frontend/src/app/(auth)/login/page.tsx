@@ -3,6 +3,7 @@
 
 'use client';
 
+import React, { Suspense } from 'react';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
