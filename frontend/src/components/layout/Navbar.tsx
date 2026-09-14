@@ -25,10 +25,11 @@ export default function Navbar({ onMobileMenuToggle }: NavbarProps) {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // Extract display values safely from auth store payload
-  const displayName = user?.fullName || user?.name || user?.username || 'User';
-  const displayEmail = user?.email || 'user@garment.com';
+  
+// Extract display values safely
+const rawUser = user as any;
+const displayName = rawUser?.fullName || rawUser?.name || 'User';
+const displayEmail = rawUser?.email || '';
 
   const handleLogout = () => {
     logout();

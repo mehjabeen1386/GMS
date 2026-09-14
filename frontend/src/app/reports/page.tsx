@@ -32,7 +32,7 @@ interface PayoutRecord {
   tailorName: string;
   skill: string;
   payPeriodStart: string;
-  payPeriodEnd: string;
+  payPeriodEnd?: string;
   piecesCompleted: number;
   netPayoutAmount: number;
   status: 'PAID' | 'PENDING';
@@ -96,7 +96,7 @@ export default function ReportsPage() {
   const activeScans = scans.filter((s) => !s.isDeleted && matchesTimeFilter(s.loggedAt));
   
   const filteredPayouts = payouts.filter((p) => {
-    const targetDate = p.payPeriodEnd || p.paidDate;
+    const targetDate = p.payPeriodEnd || p.paidDate || '';
     return matchesTimeFilter(targetDate);
   });
 
@@ -114,7 +114,7 @@ export default function ReportsPage() {
       ['Tailor Name', 'Pay Period End', 'Pieces Completed', 'Net Payout (₹)', 'Status'],
       ...filteredPayouts.map((p) => [
         `"${p.tailorName}"`,
-        p.payPeriodEnd,
+        p.payPeriodEnd || '',
         p.piecesCompleted,
         p.netPayoutAmount,
         p.status,

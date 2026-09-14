@@ -3,7 +3,11 @@
 
 'use client';
 
+<<<<<<< HEAD
 import React, { Suspense, useState } from 'react';
+=======
+import React, { useState, Suspense } from 'react';
+>>>>>>> ba47386cb85a640ec18bf2ba780e63e2625fd251
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -21,7 +25,11 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+<<<<<<< HEAD
 function LoginForm() {
+=======
+function LoginFormContent() {
+>>>>>>> ba47386cb85a640ec18bf2ba780e63e2625fd251
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
@@ -45,10 +53,13 @@ function LoginForm() {
     setIsSubmitting(true);
     setServerError(null);
     try {
-      const response = await axios.post('http://localhost:5000/api/v1/auth/login', {
-        email: data.email,
-        password: data.password,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/login`,
+        {
+          email: data.email,
+          password: data.password,
+        }
+      );
 
       const { user, token, accessToken } = response.data.data || response.data;
       const sessionToken = token || accessToken;
@@ -89,7 +100,7 @@ function LoginForm() {
         <div className="border border-border bg-card px-4 py-8 shadow-md sm:rounded-xl sm:px-10">
           {/* Session Expiration Warning Alert */}
           {isExpired && (
-            <div className="mb-6 flex items-start space-x-3 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-amber-600 dark:text-amber-400">
+            <div className="mb-6 flex items-start space-x-3 rounded-lg border border-amber-500/25 bg-amber-500/10 p-4 text-amber-600 dark:text-amber-400">
               <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
               <p className="text-xs font-medium">
                 Your session has expired. Please log in again to continue accessing your contractor workspace.
@@ -99,7 +110,7 @@ function LoginForm() {
 
           {/* Server Error Alert */}
           {serverError && (
-            <div className="mb-6 flex items-start space-x-3 rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-destructive">
+            <div className="mb-6 flex items-start space-x-3 rounded-lg border border-destructive/25 bg-destructive/10 p-4 text-destructive">
               <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
               <p className="text-xs font-medium">{serverError}</p>
             </div>
@@ -200,6 +211,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-background">
+<<<<<<< HEAD
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       }
@@ -208,3 +220,15 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+=======
+          <div className="text-sm font-medium text-muted-foreground animate-pulse">Loading login workspace...</div>
+        </div>
+      }
+    >
+      <LoginFormContent />
+    </Suspense>
+  );
+}
+
+
+>>>>>>> ba47386cb85a640ec18bf2ba780e63e2625fd251
