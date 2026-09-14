@@ -2,7 +2,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const api: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api/v1',
+  baseURL: `${process.env.NEXT_PUBLIC_API_URL || 'https://garments-erp-backend-0016.onrender.com'}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -3,11 +3,7 @@
 
 'use client';
 
-<<<<<<< HEAD
 import React, { Suspense, useState } from 'react';
-=======
-import React, { useState, Suspense } from 'react';
->>>>>>> ba47386cb85a640ec18bf2ba780e63e2625fd251
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -25,11 +21,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-<<<<<<< HEAD
 function LoginForm() {
-=======
-function LoginFormContent() {
->>>>>>> ba47386cb85a640ec18bf2ba780e63e2625fd251
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
@@ -54,7 +46,7 @@ function LoginFormContent() {
     setServerError(null);
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/login`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://garments-erp-backend-0016.onrender.com'}/api/v1/auth/login`,
         {
           email: data.email,
           password: data.password,
@@ -211,7 +203,6 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-background">
-<<<<<<< HEAD
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       }
@@ -220,15 +211,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-=======
-          <div className="text-sm font-medium text-muted-foreground animate-pulse">Loading login workspace...</div>
-        </div>
-      }
-    >
-      <LoginFormContent />
-    </Suspense>
-  );
-}
-
-
->>>>>>> ba47386cb85a640ec18bf2ba780e63e2625fd251

@@ -6,12 +6,13 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const aiRoutes = require('./routes/aiRoutes'); // Import
 const aiEstimatorRoutes = require('./routes/aiEstimatorRoutes');
+const config = require('./config/environment');
 
 const app = express();
 
-// 1. Enable CORS for local Next.js frontend
+// 1. Enable CORS for the configured frontend
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: config.cors.origin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
