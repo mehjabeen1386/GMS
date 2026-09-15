@@ -1,78 +1,152 @@
-# AI Powered Garments Contractor and Worker Management System
+# Garment ERP (GMS)
 
-An enterprise-grade, high-performance web application designed for garment contractors, factory managers, and textile warehouses. This system unifies end-to-end garment operations—from buyer tracking and inventory ledgers to real-time piece-rate labor tracking, automated payroll calculations, and AI-driven stock optimization.
+Garment ERP is a full-stack operations platform for garment contractors and manufacturing workshops. It manages buyers, fabric inventory, job orders, production activity, workers, piece-rate balances, reports, and factory settings from one live, API-driven workspace.
 
----
+## Features
 
-## 🚀 Key Features
+- Live dashboard metrics for active orders, workforce, inventory, and payouts
+- Buyer and client management
+- Fabric roll inventory with stock tracking
+- Job order creation, progress tracking, soft deletion, and recovery
+- Production floor scan records and piece-rate monitoring
+- Worker directory and payout reporting
+- CSV reports and operational analytics
+- JWT authentication and role-aware backend routes
+- Responsive Next.js interface with refreshable live data
 
-* **Dashboard & AI Smart Operations Advisor:** Live operational metrics overview featuring automated bottleneck risk monitoring, AI efficiency scoring, and scrap reduction recommendations.
-* **Brand & Clients (Buyers) Management:** Track buyer contacts, total active purchase orders (POs), lifetime order volumes, and outstanding accounts receivable balances.
-* **Fabric Inventory Ledger:** Real-time stock meter tracking, low-stock threshold alerts (< 20m), trash archive management, and integrated AI fabric utilization estimators.
-* **Job Orders Management:** Create and track production job orders with target piece quantities, garment style specifications, per-piece fabric consumption, and target delivery dates.
-* **Production Floor Monitor:** Live assembly line tracking for completed vs. remaining order pieces, total piece-rate earnings, and manual or barcode scan logs.
-* **Workforce & Tailor Directory:** Centralized labor management tracking skill categories (Tailor, Helper, Collar Specialist), lifetime production output, and unpaid piece-rate balance ledgers.
-* **Factory Reports & Analytics:** Comprehensive output summary, disbursed payroll tracking, active scan logs, and CSV data export capabilities.
-* **Factory Settings & Configuration:** Custom plant profile setup (GSTIN, factory identity), base currency configuration, and auto-scan roll reduction toggles.
+## Tech Stack
 
----
+### Frontend
 
-## 🛠️ Tech Stack
+- Next.js 14 App Router
+- React and TypeScript
+- Tailwind CSS
+- Axios
+- Zustand
+- Zod
+- Lucide React
 
-* **Framework:** React / Next.js (App Router)
-* **Language:** TypeScript
-* **Styling:** Tailwind CSS
-* **Icons:** Lucide React
-* **Validation:** Zod
+### Backend
 
----
+- Node.js and Express
+- MongoDB with Mongoose
+- JWT authentication
+- Socket.IO
+- Helmet, CORS, rate limiting, and request validation
 
-## 📦 Getting Started
+## Repository Structure
 
-### Prerequisites
+```text
+GMS/
+├── frontend/       # Next.js web application
+├── backend/        # Express REST API and Socket.IO server
+├── docs/           # API and architecture documentation
+├── docker-compose.yml
+└── vercel.json
+```
 
-Ensure you have Node.js (v18.x or higher) installed on your system.
+## Requirements
 
-### Installation & Setup
+- Node.js 18 or newer
+- npm 9 or newer
+- MongoDB running locally or a MongoDB Atlas connection
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/mehjabeen1386/GMS.git](https://github.com/mehjabeen1386/GMS.git)
-   cd GMS
+## Local Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/mehjabeen1386/GMS.git
+cd GMS
+```
 
 Install dependencies:
-   npm install
 
-Run the development server:
-   npm run dev
-   Open http://localhost:3000 in your browser to launch the system.
+```bash
+cd backend
+npm install
 
-## 📁 Project Structure
-<pre><code>.
-├── src/
-│   └── app/
-│       ├── login/        # Sign in & Authentication Page
-│       ├── dashboard/    # Operational Overview & AI Advisor
-│       ├── buyers/       # Client Directory & Accounts Receivable
-│       ├── inventory/    # Fabric Roll Ledger & AI Estimator
-│       ├── orders/       # Job Orders Management & Creation
-│       ├── production/   # Real-time Production Floor Scan Monitor
-│       ├── reports/      # Factory Analytics & CSV Data Export
-│       ├── workers/      # Workforce Directory & Piece-Rate Balances
-│       └── settings/     # Factory Configuration & Plant Identity</code></pre>
+cd ../frontend
+npm install
+```
 
-💡 Usage Workflow
-   Sign In: Log in via the entry portal using contractor credentials.
-   Configure Plant Profile: Set up factory unit name, GSTIN, registered address, and default currency in Settings.
-   Manage Clients: Add new client profiles and review active purchase orders in Buyers.
-   Log Fabric Stock: Record incoming fabric rolls in Inventory and leverage the AI estimator for resource planning.
-   Issue Job Orders: Create production job orders under Orders detailing style, target pieces, and fabric requirements.
-   Monitor Floor Operations: Log live bundle scans under Production to automatically update worker piece-rate balances in Workers and generate operational logs in Reports.
+Create the backend environment file:
 
-License
+```bash
+cd ../backend
+copy .env.example .env    # Windows
+# cp .env.example .env   # macOS/Linux
+```
 
-​Copyright © 2026 AI Powered Garments Contractor and Worker Management System (GMS). 
+Set at least these backend values in `backend/.env`:
 
-All rights reserved.
+```env
+NODE_ENV=development
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/garment_db
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_REFRESH_SECRET=replace-with-another-long-random-secret
+CORS_ORIGIN=http://localhost:3000
+```
 
-This repository is shared for portfolio and demonstration purposes only. Unauthorized copying, modification, distribution, or reuse of this code is strictly prohibited.
+Create `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+Run the backend and frontend in separate terminals:
+
+```bash
+# Terminal 1
+cd backend
+npm run dev
+
+# Terminal 2
+cd frontend
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The API health check is available at [http://localhost:5000/health](http://localhost:5000/health).
+
+## Useful Commands
+
+```bash
+# Frontend
+cd frontend
+npm run dev
+npm run build
+npm run type-check
+
+# Backend
+cd backend
+npm run dev
+npm run build
+npm test
+```
+
+## Deployment
+
+- **Frontend:** deployed through Vercel from the `frontend` project directory
+- **Backend:** deployed as the Render web service
+- Configure `NEXT_PUBLIC_API_URL` in Vercel with the deployed backend URL.
+- Configure `MONGODB_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, and `CORS_ORIGIN` in Render.
+- Never commit `.env`, `.env.local`, JWT secrets, database credentials, or API keys.
+
+## Main Routes
+
+| Area | Route |
+| --- | --- |
+| Login | `/login` |
+| Dashboard | `/dashboard` |
+| Buyers | `/buyers` |
+| Inventory | `/inventory` |
+| Orders | `/orders` |
+| Production | `/production` |
+| Reports | `/reports` |
+| Workers | `/workers` |
+| Settings | `/settings` |
+
+## License
+
+Copyright © 2026 AI Powered Garments Contractor and Worker Management System. All rights reserved. This repository is shared for portfolio and demonstration purposes only.
