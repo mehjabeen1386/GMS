@@ -36,7 +36,7 @@ export default function RootLayout({
           {/* Top Navbar */}
           <Navbar onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex min-h-0 flex-1 overflow-hidden">
             {/* Sidebar with all page links */}
             <Sidebar 
               isOpen={mobileMenuOpen} 
@@ -44,7 +44,7 @@ export default function RootLayout({
             />
 
             {/* Main Content Area (Yeh har page ka content yahan load karega) */}
-            <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+            <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-6 lg:p-8">
               {children}
             </main>
           </div>

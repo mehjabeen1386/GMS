@@ -6,6 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Users, Plus, Search, Phone, RefreshCw, Trash2, X, CheckCircle2 } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function WorkerManagementPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -21,32 +22,21 @@ export default function WorkerManagementPage() {
   const [newPhone, setNewPhone] = useState('');
   const [newBalance, setNewBalance] = useState('');
 
-  const loadWorkers = () => {
+  const loadWorkers = async () => {
     setIsRefreshing(true);
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('soms_tailors') || localStorage.getItem('soms_workforce');
-      if (saved) {
-        try {
-          setWorkers(JSON.parse(saved));
-        } catch (e) {
-          console.error('Failed to parse workers', e);
-        }
-      } else {
-        const initial = [
-          { id: '1', name: 'Ramesh Verma', skill: 'Senior Tailor', phone: '+91 98765 43210', joined: '2024-03-15', lifetimeOutput: '3,420 pcs', unpaidBalance: '₹14,500', status: 'ACTIVE' },
-          { id: '2', name: 'Sunita Devi', skill: 'Collar Specialist', phone: '+91 91234 56789', joined: '2024-05-10', lifetimeOutput: '2,890 pcs', unpaidBalance: '₹12,800', status: 'ACTIVE' },
-          { id: '3', name: 'Amit Patel', skill: 'Button Hole & Bartack', phone: '+91 99887 76655', joined: '2023-11-20', lifetimeOutput: '4,150 pcs', unpaidBalance: '₹18,200', status: 'ACTIVE' },
-          { id: '4', name: 'Priya Sharma', skill: 'Quality Checker', phone: '+91 94561 23789', joined: '2024-01-10', lifetimeOutput: '5,120 pcs', unpaidBalance: '₹9,400', status: 'ACTIVE' }
-        ];
-        setWorkers(initial);
-        localStorage.setItem('soms_tailors', JSON.stringify(initial));
-      }
+    try {
+      const response = await api.get('/workers');
+      const data = Array.isArray(response.data?.data) ? response.data.data : [];
+      setWorkers(data);
+    } catch (error) {
+      setWorkers([]);
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setRefreshMsg(true);
+        setTimeout(() => setRefreshMsg(false), 2000);
+      }, 400);
     }
-    setTimeout(() => {
-      setIsRefreshing(false);
-      setRefreshMsg(true);
-      setTimeout(() => setRefreshMsg(false), 2000);
-    }, 400);
   };
 
   useEffect(() => {
@@ -57,7 +47,7 @@ export default function WorkerManagementPage() {
   if (!isMounted) return null;
 
   // Handle Add Worker
-  const handleAddWorker = (e: React.FormEvent) => {
+  const handleAddWorker = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newSkill || !newPhone) {
       alert('Please fill in all required fields.');
@@ -76,9 +66,13 @@ export default function WorkerManagementPage() {
       status: 'ACTIVE'
     };
 
-    const updatedWorkers = [newWorkerEntry, ...workers];
-    setWorkers(updatedWorkers);
-    localStorage.setItem('soms_tailors', JSON.stringify(updatedWorkers));
+    try {
+      const response = await api.post('/workers', newWorkerEntry);
+      const saved = response.data?.data || newWorkerEntry;
+      setWorkers((current) => [saved, ...current]);
+    } catch (error) {
+      setWorkers((current) => [newWorkerEntry, ...current]);
+    }
 
     // Reset form and close modal
     setNewName('');
@@ -89,11 +83,15 @@ export default function WorkerManagementPage() {
   };
 
   // Handle Delete Worker
-  const handleDeleteWorker = (id: string) => {
+  const handleDeleteWorker = async (id: string) => {
     if (confirm('Are you sure you want to delete this worker?')) {
+      try {
+        await api.delete(`/workers/${id}`);
+      } catch (error) {
+        console.warn('Worker delete failed.');
+      }
       const updatedWorkers = workers.filter((w) => (w.id || w.phone) !== id);
       setWorkers(updatedWorkers);
-      localStorage.setItem('soms_tailors', JSON.stringify(updatedWorkers));
     }
   };
 

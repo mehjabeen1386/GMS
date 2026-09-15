@@ -13,6 +13,11 @@ import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { Factory, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
+const getApiBaseUrl = () => {
+  const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://garments-erp-backend-0016.onrender.com';
+  return rawBaseUrl.replace(/\/api(?:\/v1)?\/?$/i, '');
+};
+
 // Validation Schema for Login Input Fields
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -46,7 +51,7 @@ function LoginForm() {
     setServerError(null);
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://garments-erp-backend-0016.onrender.com'}/api/v1/auth/login`,
+        `${getApiBaseUrl()}/api/v1/auth/login`,
         {
           email: data.email,
           password: data.password,

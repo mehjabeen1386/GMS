@@ -27,6 +27,19 @@ export default function DashboardPage() {
   const [totalUnpaid, setTotalUnpaid] = useState(0);
 
   const loadDashboardData = async () => {
+    try {
+      const response = await api.get('/dashboard/summary');
+      const data = response.data?.data ?? response.data ?? {};
+
+      setActiveOrdersCount(Number(data.activeOrdersCount ?? 0));
+      setWorkersCount(Number(data.factoryWorkforce ?? 0));
+      setFabricInStock(Number(data.fabricInStock ?? 0));
+      setTotalUnpaid(Number(data.pendingPayouts ?? 0));
+      return;
+    } catch (error) {
+      console.warn('Dashboard summary endpoint unavailable, falling back to direct aggregate calls:', error);
+    }
+
     const [ordersResult, workersResult, inventoryResult] = await Promise.allSettled([
       api.get('/orders?limit=1000'),
       api.get('/workers?limit=1000'),

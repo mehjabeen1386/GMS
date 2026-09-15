@@ -44,6 +44,18 @@ app.use(cookieParser());
 app.use('/api/ai', aiRoutes);
 app.use('/api/ai', aiEstimatorRoutes);
 
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const buyersRoutes = require('./routes/buyersRoutes');
+const workersRoutes = require('./routes/workersRoutes');
+const productionRoutes = require('./routes/productionRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
+
+app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/buyers', buyersRoutes);
+app.use('/api/v1/workers', workersRoutes);
+app.use('/api/v1/floor', productionRoutes);
+app.use('/api/v1/settings', settingsRoutes);
+
 // Helper function to safely mount routes if their file exists
 const mountRoute = (path, routeFileName) => {
   try {

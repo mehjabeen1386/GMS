@@ -45,27 +45,42 @@ export default function ReportsPage() {
   const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('This Month (July 2026)');
 
+  const fetchReports = async () => {
+    try {
+      const [scansResponse, payoutsResponse] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/floor/scans`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/workers`),
+      ]);
+      const scansResult = await scansResponse.json();
+      const payoutsResult = await payoutsResponse.json();
+
+      const scanData = scansResult?.data || [];
+      const workerData = payoutsResult?.data || [];
+
+      if (Array.isArray(scanData)) setScans(scanData as ScanLog[]);
+      if (Array.isArray(workerData)) {
+        const mappedPayouts: PayoutRecord[] = workerData.map((worker: any, index: number) => ({
+          id: worker.id || `payout-${index}`,
+          tailorName: worker.name || 'Worker',
+          skill: worker.skill || 'Tailor',
+          payPeriodStart: '2026-07-01',
+          payPeriodEnd: '2026-07-31',
+          piecesCompleted: Number(String(worker.lifetimeOutput || '0').replace(/[^0-9]/g, '') || 0),
+          netPayoutAmount: Number(String(worker.unpaidBalance || '₹0').replace(/[^0-9]/g, '') || 0),
+          status: 'PAID',
+          paidDate: '2026-08-02',
+        }));
+        setPayouts(mappedPayouts);
+      }
+    } catch (error) {
+      setScans([]);
+      setPayouts([]);
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const savedScans = localStorage.getItem('soms_production_scans');
-      if (savedScans) {
-        try {
-          setScans(JSON.parse(savedScans));
-        } catch (e) {
-          console.error('Failed to parse scans', e);
-        }
-      }
-
-      const savedPayouts = localStorage.getItem('soms_worker_payouts');
-      if (savedPayouts) {
-        try {
-          setPayouts(JSON.parse(savedPayouts));
-        } catch (e) {
-          console.error('Failed to parse payouts', e);
-        }
-      }
-    }
+    fetchReports();
   }, []);
 
   if (!isMounted) {

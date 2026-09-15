@@ -32,21 +32,6 @@ interface ScanLog {
 }
 
 export default function ProductionPage() {
-  const defaultScans: ScanLog[] = [
-    {
-      id: 'scan-1',
-      bundleCode: 'BND-891-A39-M',
-      orderNumber: 'JO-2026-891',
-      tailorName: 'Ramesh Verma',
-      operation: 'Sleeve Joining & Overlock',
-      completedPieces: 50,
-      rejectedPieces: 1,
-      pieceValue: 325.0,
-      loggedAt: 'Just now',
-      isDeleted: false,
-    },
-  ];
-
   const [scans, setScans] = useState<ScanLog[]>([]);
   const [totalTarget, setTotalTarget] = useState<number>(3000);
   const [isEditingTarget, setIsEditingTarget] = useState<boolean>(false);
@@ -69,71 +54,35 @@ export default function ProductionPage() {
     pieceValue: '',
   });
 
-  // Load from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const savedScans = localStorage.getItem('soms_production_scans');
-      if (savedScans) {
-        try {
-          setScans(JSON.parse(savedScans));
-        } catch (e) {
-          console.error('Failed to parse local storage scans', e);
-          setScans(defaultScans);
-        }
-      } else {
-        setScans(defaultScans);
-      }
-
-      const savedTarget = localStorage.getItem('soms_production_total_target');
-      if (savedTarget) {
-        const parsedTarget = Number(savedTarget);
-        if (!isNaN(parsedTarget)) {
-          setTotalTarget(parsedTarget);
-          setTargetInput(parsedTarget.toString());
-        }
-      }
-    }
+    setTotalTarget(3000);
+    setTargetInput('3000');
+    fetchScans();
   }, []);
-
-  // Save scans to localStorage
-  useEffect(() => {
-    if (isMounted && typeof window !== 'undefined') {
-      localStorage.setItem('soms_production_scans', JSON.stringify(scans));
-    }
-  }, [scans, isMounted]);
-
-  // Save target to localStorage
-  useEffect(() => {
-    if (isMounted && typeof window !== 'undefined') {
-      localStorage.setItem('soms_production_total_target', totalTarget.toString());
-    }
-  }, [totalTarget, isMounted]);
 
   const fetchScans = async () => {
     setIsLoading(true);
     try {
       const response = await api.get('/floor/scans');
-      const rawData = response.data?.data || response.data?.scans || response.data;
-      const list = Array.isArray(rawData) ? rawData : rawData?.items || [];
+      const rawData = response.data?.data || [];
+      const list = Array.isArray(rawData) ? rawData : [];
 
-      if (list.length > 0) {
-        const formatted: ScanLog[] = list.map((item: any) => ({
-          id: item._id || item.id || `scan-${Math.random()}`,
-          bundleCode: item.bundleCode || 'BND-000',
-          orderNumber: item.orderNumber || 'JO-000',
-          tailorName: item.tailorName || 'Unknown Worker',
-          operation: item.operation || 'General Stitching',
-          completedPieces: Number(item.completedPieces || 0),
-          rejectedPieces: Number(item.rejectedPieces || 0),
-          pieceValue: Number(item.pieceValue || 0),
-          loggedAt: item.loggedAt || 'Recently',
-          isDeleted: Boolean(item.isDeleted || false),
-        }));
-        setScans(formatted);
-      }
+      const formatted: ScanLog[] = list.map((item: any) => ({
+        id: item._id || item.id || `scan-${Math.random()}`,
+        bundleCode: item.bundleCode || 'BND-000',
+        orderNumber: item.orderNumber || 'JO-000',
+        tailorName: item.tailorName || 'Unknown Worker',
+        operation: item.operation || 'General Stitching',
+        completedPieces: Number(item.completedPieces || 0),
+        rejectedPieces: Number(item.rejectedPieces || 0),
+        pieceValue: Number(item.pieceValue || 0),
+        loggedAt: item.loggedAt || 'Recently',
+        isDeleted: Boolean(item.isDeleted || false),
+      }));
+      setScans(formatted);
     } catch (err) {
-      console.warn('Backend fetch failed. Using local storage state.');
+      setScans([]);
     } finally {
       setIsLoading(false);
     }
@@ -171,7 +120,8 @@ export default function ProductionPage() {
       console.warn('Backend save failed, saved to local storage.');
     }
 
-    setScans([newRecord, ...scans]);
+    const updatedScans = [newRecord, ...scans];
+    setScans(updatedScans);
     setIsModalOpen(false);
     setNewBundle({
       bundleCode: '',

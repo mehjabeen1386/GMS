@@ -18,6 +18,7 @@ import {
   Mail,
   Loader2
 } from 'lucide-react';
+import api from '@/lib/api';
 
 interface Buyer {
   id: string;
@@ -31,56 +32,10 @@ interface Buyer {
   outstandingBal: string;
 }
 
-const initialBuyers: Buyer[] = [
-  {
-    id: '1',
-    brand: 'FabIndia Select',
-    gst: '27AABCF1234G1Z2',
-    contactPerson: 'Meera Rajput',
-    phone: '+91 98765 11223',
-    email: 'meera.r@fabindia.com',
-    status: 'ACTIVE',
-    totalOrders: 14,
-    outstandingBal: '₹125,000',
-  },
-  {
-    id: '2',
-    brand: 'Urban Outfitters Sourcing',
-    gst: '29BBBCF5678H2Z4',
-    contactPerson: 'Rahul Khanna',
-    phone: '+91 99887 55443',
-    email: 'rkhanna@urbanoutfitters.in',
-    status: 'ACTIVE',
-    totalOrders: 32,
-    outstandingBal: 'Settled (₹0)',
-  },
-  {
-    id: '3',
-    brand: 'Boutique House Collective',
-    gst: '24CCCDG9101I3Z5',
-    contactPerson: 'Anita Desai',
-    phone: '+91 91234 66778',
-    email: 'anita@boutiquehouse.co.in',
-    status: 'ACTIVE',
-    totalOrders: 5,
-    outstandingBal: '₹45,000',
-  },
-  {
-    id: '4',
-    brand: 'Heritage Weaves',
-    gst: '07DDDEH2345J4Z6',
-    contactPerson: 'Vikram Singh',
-    phone: '+91 94561 88990',
-    email: 'vikram@heritageweaves.com',
-    status: 'INACTIVE',
-    totalOrders: 2,
-    outstandingBal: 'Settled (₹0)',
-  },
-];
-
 export default function BuyersPage() {
-  const [buyers, setBuyers] = useState<Buyer[]>(initialBuyers);
-  const [isMounted, setIsMounted] = useState(false); // Flash fix karne ke liye
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -100,33 +55,40 @@ export default function BuyersPage() {
     outstandingBal: 'Settled (₹0)',
   });
 
-  // LocalStorage se data load karna aur mounting confirm karna
-  useEffect(() => {
-    const savedBuyers = localStorage.getItem('erp_buyers_list');
-    if (savedBuyers) {
-      try {
-        setBuyers(JSON.parse(savedBuyers));
-      } catch (e) {
-        console.error('Error parsing saved buyers:', e);
-      }
+  const fetchBuyers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/buyers');
+      const data = Array.isArray(response.data?.data) ? response.data.data : [];
+      setBuyers(data as Buyer[]);
+    } catch (error) {
+      setBuyers([]);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchBuyers();
     setIsMounted(true);
   }, []);
 
-  // Jab bhi buyers change ho, localStorage mein save ho jaye
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem('erp_buyers_list', JSON.stringify(buyers));
-    }
-  }, [buyers, isMounted]);
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newBuyer: Buyer = {
       id: Date.now().toString(),
       ...formData,
     };
-    setBuyers([newBuyer, ...buyers]);
+
+    try {
+      const response = await api.post('/buyers', newBuyer);
+      const savedBuyer = response.data?.data || newBuyer;
+      setBuyers((current) => [savedBuyer, ...current]);
+    } catch (error) {
+      setBuyers((current) => [newBuyer, ...current]);
+    }
+
     setIsAddModalOpen(false);
     resetForm();
   };
@@ -146,19 +108,34 @@ export default function BuyersPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentBuyer) return;
 
-    setBuyers(buyers.map((b) => (b.id === currentBuyer.id ? { ...b, ...formData } : b)));
+    const updated = buyers.map((b) => (b.id === currentBuyer.id ? { ...b, ...formData } : b));
+
+    try {
+      await api.put(`/buyers/${currentBuyer.id}`, formData);
+    } catch (error) {
+      console.warn('Buyer update failed.');
+    }
+
+    setBuyers(updated);
     setIsEditModalOpen(false);
     setCurrentBuyer(null);
     resetForm();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this client?')) {
-      setBuyers(buyers.filter((b) => b.id !== id));
+      try {
+        await api.delete(`/buyers/${id}`);
+      } catch (error) {
+        console.warn('Buyer delete failed.');
+      }
+
+      const next = buyers.filter((b) => b.id !== id);
+      setBuyers(next);
     }
   };
 
@@ -211,12 +188,9 @@ export default function BuyersPage() {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => {
-              setBuyers(initialBuyers);
-              localStorage.removeItem('erp_buyers_list');
-            }}
+            onClick={fetchBuyers}
             className="p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted transition-colors"
-            title="Reset to Default Data"
+            title="Refresh Data"
           >
             <RefreshCw className="h-4 w-4" />
           </button>

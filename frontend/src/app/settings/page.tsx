@@ -6,48 +6,50 @@
 
 import React, { useEffect, useState } from 'react';
 import { Settings, Save, CheckCircle2 } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function FactorySettingsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
 
   // Form states
-  const [factoryName, setFactoryName] = useState('Apex Garments Unit #4');
-  const [gstin, setGstin] = useState('27AABCA1234F1Z9');
-  const [address, setAddress] = useState('Plot 42, MIDC Industrial Area, Electronic Zone, Bangalore - 560100');
-  const [email, setEmail] = useState('operations@apexgarments.in');
-  const [phone, setPhone] = useState('+91 98765 00000');
+  const [factoryName, setFactoryName] = useState('');
+  const [gstin, setGstin] = useState('');
+  const [address, setAddress] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [currency, setCurrency] = useState('Indian Rupee (INR ₹)');
   const [whatsappAlerts, setWhatsappAlerts] = useState(true);
   const [autoScan, setAutoScan] = useState(true);
 
   // Load saved settings on mount
   useEffect(() => {
-    setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('soms_factory_settings');
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          if (data.factoryName) setFactoryName(data.factoryName);
-          if (data.gstin) setGstin(data.gstin);
-          if (data.address) setAddress(data.address);
-          if (data.email) setEmail(data.email);
-          if (data.phone) setPhone(data.phone);
-          if (data.currency) setCurrency(data.currency);
-          if (typeof data.whatsappAlerts === 'boolean') setWhatsappAlerts(data.whatsappAlerts);
-          if (typeof data.autoScan === 'boolean') setAutoScan(data.autoScan);
-        } catch (e) {
-          console.error('Failed to parse factory settings', e);
-        }
+    const loadSettings = async () => {
+      try {
+        const response = await api.get('/settings');
+        const data = response.data?.data || {};
+        if (data.factoryName) setFactoryName(data.factoryName);
+        if (data.gstin) setGstin(data.gstin);
+        if (data.address) setAddress(data.address);
+        if (data.email) setEmail(data.email);
+        if (data.phone) setPhone(data.phone);
+        if (data.currency) setCurrency(data.currency);
+        if (typeof data.whatsappAlerts === 'boolean') setWhatsappAlerts(data.whatsappAlerts);
+        if (typeof data.autoScan === 'boolean') setAutoScan(data.autoScan);
+      } catch (error) {
+        // Intentionally blank so the UI does not hydrate stale values.
+      } finally {
+        setIsMounted(true);
       }
-    }
+    };
+
+    loadSettings();
   }, []);
 
   if (!isMounted) return null;
 
   // Handle Save Settings
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const settingsData = {
       factoryName,
@@ -60,8 +62,10 @@ export default function FactorySettingsPage() {
       autoScan
     };
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('soms_factory_settings', JSON.stringify(settingsData));
+    try {
+      await api.put('/settings', settingsData);
+    } catch (error) {
+      console.warn('Settings update failed.');
     }
 
     setSuccessMsg(true);

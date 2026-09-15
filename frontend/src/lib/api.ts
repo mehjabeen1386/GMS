@@ -1,8 +1,13 @@
 // Path: frontend/src/lib/api.ts
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
+export const getApiBaseUrl = () => {
+  const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://garments-erp-backend-0016.onrender.com';
+  return rawBaseUrl.replace(/\/api(?:\/v1)?\/?$/i, '');
+};
+
 const api: AxiosInstance = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL || 'https://garments-erp-backend-0016.onrender.com'}/api/v1`,
+  baseURL: `${getApiBaseUrl()}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },

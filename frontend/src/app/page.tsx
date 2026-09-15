@@ -150,16 +150,22 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/orders/dashboard/stats');
-      const data = response.data?.data || response.data;
+      const response = await api.get('/dashboard/summary');
+      const data = response.data?.data || response.data || {};
       setStats({
-        activeOrdersCount: data.activeOrdersCount ?? 0,
-        factoryWorkforce: data.factoryWorkforce ?? 48,
-        fabricInStock: data.fabricInStock ?? '3,450 m',
-        pendingPayouts: data.pendingPayouts ?? '₹184,500',
+        activeOrdersCount: Number(data.activeOrdersCount ?? 0),
+        factoryWorkforce: Number(data.factoryWorkforce ?? 0),
+        fabricInStock: `${Number(data.fabricInStock ?? 0).toLocaleString('en-IN')} m`,
+        pendingPayouts: `₹${Number(data.pendingPayouts ?? 0).toLocaleString('en-IN')}`,
       });
     } catch (err) {
       console.error('Failed to fetch dashboard stats:', err);
+      setStats({
+        activeOrdersCount: 0,
+        factoryWorkforce: 0,
+        fabricInStock: '0 m',
+        pendingPayouts: '₹0',
+      });
     } finally {
       setIsLoading(false);
     }
